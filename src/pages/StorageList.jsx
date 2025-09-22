@@ -1,16 +1,34 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
-  Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, MenuItem
+  Box,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  MenuItem,
 } from "@mui/material";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const StorageList = () => {
   const [storages, setStorages] = useState([]);
   const [products, setProducts] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedStorage, setSelectedStorage] = useState(null);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+
   const [form, setForm] = useState({
     productId: "",
     quantity: 0,
@@ -26,43 +44,66 @@ const StorageList = () => {
 
   const fetchStorages = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/v1/storage/Listgetall");
+      const res = await axios.get(
+        "http://localhost:8080/api/v1/storage/Listgetall"
+      );
       setStorages(res.data);
     } catch (err) {
-      console.error("Lỗi khi lấy danh sách:", err);
+      toast.error("Lỗi khi lấy danh sách:", err);
     }
   };
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/v1/product/Listgetall");
+      const res = await axios.get(
+        "http://localhost:8080/api/v1/product/Listgetall"
+      );
       setProducts(res.data);
+      toast.success("Sản phẩm đã được tải!");
     } catch (err) {
-      console.error("Lỗi khi load sản phẩm:", err);
+      toast.error("Lỗi khi load sản phẩm:", err);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Bạn có chắc muốn xóa bản ghi này?")) return;
+  const handleConfirmDelete = async () => {
+    if (!deleteId) return;
     try {
-      await axios.delete(`http://localhost:8080/api/v1/storage/delete/${id}`);
-      setStorages(storages.filter((s) => s.idImport !== id));
+      await axios.delete(`http://localhost:8080/api/v1/storage/delete/${deleteId}`);
+      setStorages(storages.filter((s) => s.idImport !== deleteId));
+      toast.success("Xóa thành công!");
     } catch (err) {
-      console.error("Lỗi khi xóa:", err);
+      toast.error("Lỗi khi xóa:", err);
+    } finally {
+      setOpenDelete(false);
+      setDeleteId(null);
     }
   };
 
-  // Mở dialog cập nhật
-  const handleOpenUpdate = (storage) => {
-    setSelectedStorage(storage);
-    setForm({
-      productId: storage.product_id || "",
-      quantity: storage.quantity || 0,
-      createDate: storage.createDate || "",
-      updateDate: storage.updateDate || "",
-      users: storage.users || "admin",
-    });
-    setOpen(true);
+  const handleOpenDelete = (id) => {
+    setDeleteId(id);
+    setOpenDelete(true);
+  };
+
+  const handleOpenUpdate = async (storage) => {
+    try {
+      const res = await axios.get(
+        `http://localhost:8080/api/v1/storage/${storage.idImport}/get`
+      );
+      const detail = res.data;
+
+      setSelectedStorage(detail);
+      setForm({
+        productId: detail.productId || "",
+        quantity: detail.quantity || 0,
+        createDate: detail.createDate || "",
+        updateDate: detail.updateDate || "",
+        users: detail.users || "admin",
+      });
+      setOpen(true);
+    } catch (err) {
+      console.error("Lỗi khi lấy chi tiết:", err);
+      toast.error("Không thể tải chi tiết kho hàng!");
+    }
   };
 
   const handleClose = () => {
@@ -80,13 +121,24 @@ const StorageList = () => {
 
   const handleUpdate = async () => {
     if (!selectedStorage) return;
+
+    const formData = new FormData();
+    formData.append("idImport", selectedStorage.idImport);
+    formData.append("users", form.users);
+    formData.append("createDate", form.createDate);
+    formData.append("updateDate", form.updateDate);
+    formData.append("productId", form.productId);
+    formData.append("quantity", form.quantity);
+
     try {
-      await axios.put(`http://localhost:8080/api/v1/storage/update/${selectedStorage.idImport}`, form, {
-        headers: { "Content-Type": "application/json" },
-      });
-      alert("Cập nhật thành công!");
+      await axios.put(
+        `http://localhost:8080/api/v1/storage/update/${selectedStorage.idImport}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      toast.success("Cập nhật thành công!");
       handleClose();
-      fetchStorages(); // refresh danh sách
+      fetchStorages();
     } catch (err) {
       console.error("Lỗi khi cập nhật:", err);
     }
@@ -151,7 +203,7 @@ const StorageList = () => {
                     variant="contained"
                     color="error"
                     size="small"
-                    onClick={() => handleDelete(s.idImport)}
+                    onClick={() => handleOpenDelete(s.idImport)}
                   >
                     Xóa
                   </Button>
@@ -161,8 +213,6 @@ const StorageList = () => {
           </TableBody>
         </Table>
       </TableContainer>
-
-      {/* Dialog Update */}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Cập Nhật Kho Hàng</DialogTitle>
         <DialogContent>
@@ -174,6 +224,7 @@ const StorageList = () => {
             onChange={handleChange}
             fullWidth
             margin="normal"
+            disabled
           >
             {products.map((p) => (
               <MenuItem key={p.id} value={p.id}>
@@ -226,6 +277,19 @@ const StorageList = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Dialog open={openDelete} onClose={() => setOpenDelete(false)}>
+        <DialogTitle>Xác nhận xóa</DialogTitle>
+        <DialogContent>
+          Bạn có chắc muốn xóa bản ghi này?
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDelete(false)}>Hủy</Button>
+          <Button color="error" onClick={handleConfirmDelete}>
+            Xóa
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <ToastContainer position="top-right" autoClose={3000} />
     </Box>
   );
 };

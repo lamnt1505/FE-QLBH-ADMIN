@@ -190,8 +190,6 @@ const CreateDiscountPage = () => {
           </Stack>
         </Stack>
       </form>
-
-      {/* Dialog hiển thị mã giảm giá */}
       <Dialog open={dialogOpen} onClose={handleClose}>
         <DialogTitle>Mã giảm giá của bạn</DialogTitle>
         <DialogContent>

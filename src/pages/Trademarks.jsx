@@ -25,7 +25,6 @@ const Trademarks = () => {
   const [updateId, setUpdateId] = useState(null);
   const [updateName, setUpdateName] = useState("");
 
-  // Lấy danh sách trademark
   useEffect(() => {
     fetchTrademarks();
   }, []);
@@ -39,7 +38,6 @@ const Trademarks = () => {
     }
   };
 
-  // ====== THÊM TRADEMARK ======
   const handleOpenAdd = () => setOpenAdd(true);
   const handleCloseAdd = () => {
     setOpenAdd(false);
@@ -59,7 +57,6 @@ const Trademarks = () => {
     }
   };
 
-  // ====== CẬP NHẬT ======
   const handleOpenUpdate = (trademark) => {
     setUpdateId(trademark.tradeID);
     setUpdateName(trademark.trademarkName);
@@ -89,7 +86,6 @@ const Trademarks = () => {
   }
  };
 
-  // ====== XÓA ======
   const handleOpenDelete = (id) => {
     setDeleteId(id);
     setOpenDelete(true);
@@ -110,7 +106,6 @@ const Trademarks = () => {
     }
   };
 
-  // ====== IMPORT FILE ======
   const handleButtonClick = () => {
     if (fileInputRef.current) fileInputRef.current.click();
   };
@@ -135,7 +130,6 @@ const Trademarks = () => {
     }
   };
 
-  // ====== DOWNLOAD TEMPLATE ======
   const handleDownloadTemplate = async () => {
     try {
       const response = await axios.get(
@@ -214,8 +208,6 @@ const Trademarks = () => {
 </TableBody>
         </Table>
       </TableContainer>
-
-      {/* Add */}
       <Dialog open={openAdd} onClose={handleCloseAdd}>
         <DialogTitle>Thêm Trademark</DialogTitle>
         <DialogContent>
@@ -231,8 +223,6 @@ const Trademarks = () => {
           <Button onClick={handleConfirmAdd} variant="contained" color="primary">Thêm</Button>
         </DialogActions>
       </Dialog>
-
-      {/* Update */}
       <Dialog open={openUpdate} onClose={handleCloseUpdate}>
         <DialogTitle>Cập nhật Trademark</DialogTitle>
         <DialogContent>
@@ -248,8 +238,6 @@ const Trademarks = () => {
           <Button onClick={handleConfirmUpdate} variant="contained" color="primary">Lưu</Button>
         </DialogActions>
       </Dialog>
-
-      {/* Delete */}
       <Dialog open={openDelete} onClose={handleCloseDelete}>
         <DialogTitle>Xác nhận xóa</DialogTitle>
         <DialogContent>Bạn có chắc chắn muốn xóa Trademark này không?</DialogContent>

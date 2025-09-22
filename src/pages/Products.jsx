@@ -30,7 +30,17 @@ const Products = () => {
   const [updateImageFile, setUpdateImageFile] = useState(null);
   const [categories, setCategories] = useState([]);
   const [trademarks, setTrademarks] = useState([]);
-  
+  const [openImage, setOpenImage] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  const handleOpenImage = (img) => {
+  setSelectedImage(img);
+  setOpenImage(true);
+  };
+  const handleCloseImage = () => {
+  setOpenImage(false);
+  setSelectedImage(null);
+  };
   const handleOpenUpdate = async (id) => {
   try {
     const res = await axios.get(`http://localhost:8080/api/v1/product/${id}/get`);
@@ -65,7 +75,7 @@ const Products = () => {
     formData.append("description", updateDescription);
     formData.append("categoryId", updateCategoryId);
     formData.append("trademarkId", updateTrademarkId);
-    formData.append("date_product", updateDate); // nếu có ngày sản xuất
+    formData.append("date_product", updateDate);
 
     if (updateImageFile) {
       formData.append("image", updateImageFile);
@@ -179,9 +189,9 @@ const Products = () => {
     axios.get('http://localhost:8080/api/v1/product/getall')
       .then(response => {
         setProducts(response.data);
+        toast.success("Tải danh sách sản phẩm thành công!");
       })
       .catch(error => {
-        console.error('Lỗi khi tải sản phẩm:', error);
         toast.error("Không thể tải danh sách sản phẩm!");
       });
   }, []);
@@ -189,7 +199,8 @@ const Products = () => {
   const fetchCategories = async () => {
     try {
       const res = await axios.get("http://localhost:8080/api/v1/category/Listgetall");
-      setCategories(res.data); // ✅ lưu danh sách loại sản phẩm
+      setCategories(res.data);
+      toast.success("Tải danh sách loại sản phẩm thành công!");
     } catch (err) {
       console.error("Lỗi khi load categories:", err);
       toast.error("Không thể tải danh sách loại sản phẩm!");
@@ -198,7 +209,8 @@ const Products = () => {
   const fetchTrademarks = async () => {
     try {
       const res = await axios.get("http://localhost:8080/api/trademark/gettrademark");
-      setTrademarks(res.data); // ✅ lưu danh sách thương hiệu
+      setTrademarks(res.data);
+      toast.success("Tải danh sách thương hiệu thành công!");
     } catch (err) {
       console.error("Lỗi khi load trademarks:", err);
       toast.error("Không thể tải danh sách thương hiệu!");
@@ -244,9 +256,10 @@ return (
             <TableCell>
               <Avatar
                 variant="square"
-                src={product.imageBase64 ? `data:image/jpeg;base64,${product.imageBase64}` : ''}
+                src={product.imageBase64 ? `data:image/jpeg;base64,${product.imageBase64}` : ''} 
                 alt={product.name}
                 sx={{ width: 80, height: 80 }}
+                onClick={() => handleOpenImage(`data:image/jpeg;base64,${product.imageBase64}`)}
               />
             </TableCell>
             <TableCell>{product.name}</TableCell>
@@ -317,17 +330,22 @@ return (
           </Button>
         </DialogActions>
   </Dialog>
+  <Dialog open={openImage} onClose={handleCloseImage} maxWidth="md">
+  <DialogContent>
+    {selectedImage && (
+      <img src={selectedImage} alt="Preview" style={{ width: '100%', height: 'auto' }} />
+    )}
+  </DialogContent>
+  </Dialog>
   <Dialog open={openUpdate} onClose={handleCloseUpdate} maxWidth="sm" fullWidth>
   <DialogTitle>Cập nhật sản phẩm</DialogTitle>
   <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-    {/* Tên sản phẩm */}
     <TextField
       label="Tên sản phẩm"
       value={updateName}
       onChange={(e) => setUpdateName(e.target.value)}
       fullWidth
   />
-    {/* Giá */}
     <TextField
       label="Giá"
       type="number"
@@ -336,7 +354,6 @@ return (
       fullWidth
     />
 
-    {/* Mô tả */}
     <TextField
       label="Mô tả"
       multiline
@@ -345,8 +362,6 @@ return (
       onChange={(e) => setUpdateDescription(e.target.value)}
       fullWidth
     />
-
-    {/* Loại sản phẩm */}
   <FormControl fullWidth>
   <InputLabel id="category-label">Loại sản phẩm</InputLabel>
   <Select
@@ -375,7 +390,6 @@ return (
     ))}
   </Select>
 </FormControl>
-    {/* Ngày sản xuất */}
     <TextField
       label="Ngày sản xuất"
       type="date"
@@ -384,7 +398,6 @@ return (
       InputLabelProps={{ shrink: true }}
       fullWidth
     />
-    {/* Ảnh sản phẩm */}
     <Button
       variant="outlined"
       component="label"

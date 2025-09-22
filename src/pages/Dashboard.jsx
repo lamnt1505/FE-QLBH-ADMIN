@@ -75,7 +75,6 @@ const Dashboard = () => {
   return (
     <Box sx={{ p: 3, mt: 8, width: "100%" }}>
     <Grid container spacing={3}>
-      {/* Biểu đồ đường */}
       <Grid item xs={12} md={6}>
         <Card sx={{ height: 500, width: "100%" }}>
           <CardContent sx={{ height: "100%", width: "100%" }}>
@@ -92,8 +91,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </Grid>
-
-      {/* Biểu đồ tròn */}
       <Grid item xs={12} md={6}>
         <Card sx={{ height: 500, width: "100%" }}>
           <CardContent sx={{ height: "100%", width: "100%" }}>

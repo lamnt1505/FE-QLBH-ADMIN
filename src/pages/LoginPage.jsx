@@ -136,7 +136,6 @@ export default function LoginPage() {
               required
             />{" "}
           </div>{" "}
-          {/* Captcha */}{" "}
           <div>
             {" "}
             <div className="flex items-center justify-between mb-2">

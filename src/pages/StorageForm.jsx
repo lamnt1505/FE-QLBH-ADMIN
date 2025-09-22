@@ -8,7 +8,7 @@ import {
   MenuItem,
   Paper,
 } from "@mui/material";
-import { ToastContainer, toast } from "react-toastify"; // ✅ import
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const StorageForm = () => {
@@ -18,7 +18,7 @@ const StorageForm = () => {
     quantity: 0,
     createDate: "",
     updateDate: "",
-    users: "admin", // ✅ trùng với BE
+    users: "admin",
   });
 
   useEffect(() => {
@@ -54,12 +54,12 @@ const StorageForm = () => {
       await axios.post("http://localhost:8080/api/v1/storage/add", form, {
         headers: { "Content-Type": "application/json" },
       });
-      toast.success("🎉 Thêm lưu trữ thành công! Đang chuyển hướng...", {
+      toast.success("Thêm lưu trữ thành công! Đang chuyển hướng...", {
         autoClose: 3000,
       });
 
       setTimeout(() => {
-        window.location.href = "/StorageList";
+        window.location.href = "/storages";
       }, 4000);
     } catch (err) {
       console.error("Lỗi khi thêm:", err);
@@ -85,7 +85,6 @@ const StorageForm = () => {
         </Typography>
 
         <form onSubmit={handleSubmit}>
-          {/* Chọn sản phẩm */}
           <TextField
               select
               fullWidth
@@ -102,7 +101,6 @@ const StorageForm = () => {
     </MenuItem>
   ))}
 </TextField>
-          {/* Số lượng */}
           <TextField
             fullWidth
             label="Số Lượng"
@@ -113,8 +111,6 @@ const StorageForm = () => {
             margin="normal"
             required
           />
-
-          {/* Ngày nhập */}
           <TextField  
             fullWidth
             label="Ngày Nhập"
@@ -125,8 +121,6 @@ const StorageForm = () => {
             margin="normal"
             InputLabelProps={{ shrink: true }}
           />
-
-          {/* Ngày xuất */}
           <TextField
             fullWidth
             label="Ngày Xuất"
@@ -137,8 +131,6 @@ const StorageForm = () => {
             margin="normal"
             InputLabelProps={{ shrink: true }}
           />
-
-          {/* Người quản lý */}
           <TextField
             fullWidth
             label="Người Quản Lý"

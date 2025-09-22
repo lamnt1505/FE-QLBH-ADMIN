@@ -26,7 +26,6 @@ function App() {
         {/* Trang login KHÔNG có layout */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Các route yêu cầu login */}
         <Route element={<ProtectedRoute />}>
   <Route element={<Layout />}>
     <Route path="/dashboard" element={<Dashboard />} />

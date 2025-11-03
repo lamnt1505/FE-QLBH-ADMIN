@@ -85,7 +85,7 @@ const Sidebar = ({ drawerWidth }) => {
           <ListItemIcon sx={{ color: 'white' }}><MdEditNote /></ListItemIcon>
           <ListItemText primary="QUẢN LÝ ĐÁNH GIÁ" />
         </ListItem>
-         <ListItem button component={Link} to="/discounts">
+         <ListItem button component={Link} to="/discountslist">
           <ListItemIcon sx={{ color: 'white' }}><CiDiscount1 /></ListItemIcon>
           <ListItemText primary="QUẢN LÝ MÃ GIẢM GIÁ" />
         </ListItem>

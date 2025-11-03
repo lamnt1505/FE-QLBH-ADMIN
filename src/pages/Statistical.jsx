@@ -41,6 +41,28 @@ const StatisticsPage = () => {
   const [quarterStats, setQuarterStats] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const [profitStats, setProfitStats] = useState([]);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const diffDays = (end - start) / (1000 * 60 * 60 * 24);
+  const [discountStats, setDiscountStats] = useState([]);
+
+  useEffect(() => {
+    const fetchDiscountStats = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:8080/api/export/statistics/discount"
+        );
+        setDiscountStats(res.data);
+      } catch (err) {
+        console.error(err);
+        toast.error("Lỗi khi tải thống kê mã giảm giá!");
+      }
+    };
+    fetchDiscountStats();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -333,12 +355,20 @@ const StatisticsPage = () => {
         onChange={(e, newVal) => setTabIndex(newVal)}
         sx={{ mb: 3 }}
       >
-        <Tab label="Sản phẩm"/>
-        <Tab label="Theo Năm"/>
-        <Tab label="Theo Tháng"/>
+        <Tab label="Sản phẩm" />
+        <Tab label="Theo Năm" />
+        <Tab label="Theo Tháng" />
         <Tab label="Theo Quý" />
+        <Tab label="Lợi nhuận (Từ ngày → Đến ngày)" />
+        <Tab label="Mã giảm giá" />
       </Tabs>
       <TabPanel value={tabIndex} index={0}>
+                <Typography
+          variant="h6"
+          sx={{ mb: 2, fontWeight: "bold", color: "#1976d2" }}
+        >
+          THỐNG KÊ SẢN PHẨM
+        </Typography>
         <div className="d-flex justify-content-end mb-2">
           <Button
             variant="contained"
@@ -395,6 +425,12 @@ const StatisticsPage = () => {
         </TableContainer>
       </TabPanel>
       <TabPanel value={tabIndex} index={1}>
+                <Typography
+          variant="h6"
+          sx={{ mb: 2, fontWeight: "bold", color: "#1976d2" }}
+        >
+          THỐNG KÊ THEO NĂM
+        </Typography>
         <div className="d-flex justify-content-end mb-2">
           <Button
             variant="contained"
@@ -459,6 +495,12 @@ const StatisticsPage = () => {
         </TableContainer>
       </TabPanel>
       <TabPanel value={tabIndex} index={2}>
+                <Typography
+          variant="h6"
+          sx={{ mb: 2, fontWeight: "bold", color: "#1976d2" }}
+        >
+          THỐNG KÊ THEO THÁNG
+        </Typography>
         <div className="d-flex justify-content-end mb-2">
           <Button
             variant="contained"
@@ -525,6 +567,12 @@ const StatisticsPage = () => {
         </TableContainer>
       </TabPanel>
       <TabPanel value={tabIndex} index={3}>
+                <Typography
+          variant="h6"
+          sx={{ mb: 2, fontWeight: "bold", color: "#1976d2" }}
+        >
+          THỐNG KÊ THEO QUÝ
+        </Typography>
         <div className="d-flex justify-content-end mb-2">
           <Button
             variant="contained"
@@ -586,6 +634,259 @@ const StatisticsPage = () => {
                   </TableCell>
                 </TableRow>
               ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </TabPanel>
+      <TabPanel value={tabIndex} index={4}>
+                <Typography
+          variant="h6"
+          sx={{ mb: 2, fontWeight: "bold", color: "#1976d2" }}
+        >
+          THỐNG KÊ LỢI NHUẬN THEO KHOẢN THỜI GIAN
+        </Typography>
+        <Paper
+          elevation={3}
+          sx={{
+            p: 3,
+            mb: 3,
+            borderRadius: 3,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+          }}
+        >
+          <Paper
+            sx={{
+              p: 2,
+              mb: 2,
+              borderLeft: "4px solid #1976d2",
+              backgroundColor: "#f5f9ff",
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
+              Ghi chú cách tính:
+            </Typography>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              • <strong>Doanh thu</strong>: Tổng tiền bán được trong khoảng thời
+              gian đã chọn. <br />• <strong>Chi phí</strong>: Tổng giá vốn hàng
+              bán (giá nhập hoặc chi phí sản xuất). <br />•{" "}
+              <strong>Lợi nhuận</strong> = Doanh thu – Chi phí.
+            </Typography>
+          </Paper>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: 2,
+            }}
+          >
+            <Typography>Chọn khoảng thời gian:</Typography>
+            <input
+              type="date"
+              value={startDate}
+              max={new Date().toISOString().split("T")[0]}
+              onChange={(e) => setStartDate(e.target.value)}
+              style={{
+                padding: "6px 10px",
+                borderRadius: "6px",
+                border: "1px solid #ccc",
+              }}
+            />
+
+            <Typography>đến</Typography>
+
+            <input
+              type="date"
+              value={endDate}
+              max={new Date().toISOString().split("T")[0]}
+              onChange={(e) => setEndDate(e.target.value)}
+              style={{
+                padding: "6px 10px",
+                borderRadius: "6px",
+                border: "1px solid #ccc",
+              }}
+            />
+
+            <Button
+              variant="contained"
+              color="success"
+              sx={{ height: "40px", px: 3 }}
+              onClick={async () => {
+                if (!startDate || !endDate) {
+                  toast.warning("Vui lòng chọn đủ khoảng thời gian!");
+                  return;
+                }
+
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const diffDays = (end - start) / (1000 * 60 * 60 * 24);
+
+                if (diffDays < 0) {
+                  toast.error("Ngày bắt đầu không được lớn hơn ngày kết thúc!");
+                  return;
+                }
+
+                if (diffDays > 30) {
+                  toast.warning(
+                    "Khoảng thời gian không được vượt quá 30 ngày!"
+                  );
+                  return;
+                }
+
+                try {
+                  const res = await axios.get(
+                    `http://localhost:8080/api/export/profit?startDate=${startDate}&endDate=${endDate}`
+                  );
+                  setProfitStats(res.data);
+                } catch (err) {
+                  console.error(err);
+                  toast.error("Lỗi khi tải dữ liệu lợi nhuận!");
+                }
+              }}
+            >
+              Xem thống kê
+            </Button>
+          </Box>
+        </Paper>
+        <TableContainer
+          component={Paper}
+          sx={{
+            boxShadow: 3,
+            borderRadius: 3,
+          }}
+        >
+          <Table>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: "#1976d2" }}>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  TÊN SẢN PHẨM
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  DOANH THU
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  CHI PHÍ
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "white",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  LỢI NHUẬN
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {profitStats.length > 0 ? (
+                profitStats.map((item, index) => (
+                  <TableRow
+                    key={index}
+                    sx={{
+                      "&:hover": { backgroundColor: "#f1faff" },
+                      transition: "0.2s",
+                    }}
+                  >
+                    <TableCell sx={{ textAlign: "center" }}>
+                      {item.productName}
+                    </TableCell>
+                    <TableCell sx={{ textAlign: "center" }}>
+                      {item.revenue.toLocaleString()}
+                    </TableCell>
+                    <TableCell sx={{ textAlign: "center" }}>
+                      {item.cost.toLocaleString()}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        textAlign: "center",
+                        color: item.profit > 0 ? "green" : "red",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {item.profit.toLocaleString()}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} sx={{ textAlign: "center", py: 3 }}>
+                    Chưa có dữ liệu trong khoảng này.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </TabPanel>
+      <TabPanel value={tabIndex} index={5}>
+        <Typography
+          variant="h6"
+          sx={{ mb: 2, fontWeight: "bold", color: "#1976d2" }}
+        >
+          THỐNG KÊ MÃ GIẢM GIÁ KHÁCH HÀNG ĐÃ SỬ DỤNG
+        </Typography>
+
+        <TableContainer component={Paper} sx={tableStyles.container}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={tableStyles.header}>TÊN MÃ GIẢM GIÁ</TableCell>
+                <TableCell sx={tableStyles.header}>SỐ LẦN SỬ DỤNG</TableCell>
+                <TableCell sx={tableStyles.header}>
+                  TỔNG TIỀN ĐÃ GIẢM (VNĐ)
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {discountStats && discountStats.length > 0 ? (
+                discountStats.map((d, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell sx={tableStyles.cell}>
+                      {d.discountName}
+                    </TableCell>
+                    <TableCell sx={tableStyles.cell}>
+                      {d.usageCount ?? 0}
+                    </TableCell>
+                    <TableCell sx={tableStyles.cell}>
+                      {d.totalDiscountedAmount
+                        ? new Intl.NumberFormat().format(
+                            d.totalDiscountedAmount
+                          )
+                        : "0"}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={3}
+                    sx={{ textAlign: "center", py: 3, color: "gray" }}
+                  >
+                    Chưa có dữ liệu sử dụng mã giảm giá.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </TableContainer>

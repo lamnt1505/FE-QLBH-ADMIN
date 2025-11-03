@@ -85,7 +85,7 @@ const CreateDiscountPage = () => {
       }
     } catch (err) {
       console.error(err);
-      toast.error("CÓ LỖI XẢY RA KHI GỌI API!");
+      toast.error(err.response?.data?.message ||"CÓ LỖI XẢY RA KHI GỌI API!");
     }
   };
 
@@ -232,7 +232,7 @@ const CreateDiscountPage = () => {
               <Button onClick={handleClose} autoFocus>
                 ĐÓNG
               </Button>
-            </DialogActions>$env:PORT=3005; npm start
+            </DialogActions>
 
           </Dialog>
           <Snackbar

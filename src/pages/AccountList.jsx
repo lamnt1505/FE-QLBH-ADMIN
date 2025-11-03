@@ -14,6 +14,7 @@ import {
   Select,
   MenuItem,
   Button,
+  TablePagination
 } from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -22,6 +23,9 @@ const AccountList = () => {
   const [accounts, setAccounts] = useState([]);
   const accountData = JSON.parse(localStorage.getItem("account"));
   const currentRole = accountData?.role?.toUpperCase();
+
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   console.log("Current Role:", currentRole);
   useEffect(() => {
@@ -39,6 +43,7 @@ const AccountList = () => {
       toast.error("Lỗi khi lấy danh sách tài khoản");
     }
   };
+
   const handleRoleChange = async (accountID, newRole) => {
     try {
       await axios.put(
@@ -57,6 +62,18 @@ const AccountList = () => {
       toast.error("Không thể phân quyền");
     }
   };
+
+  const handleChangePage = (event, newPage) => setPage(newPage);
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const paginatedAccounts = accounts.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
   return (
     <Box sx={{ p: 3, mt: 10 }}>
       <Typography variant="h5" gutterBottom>
@@ -100,59 +117,77 @@ const AccountList = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {accounts.map((acc) => (
-              <TableRow key={acc.accountID}>
-                <TableCell>{acc.accountID}</TableCell>
-                <TableCell>
-                  {acc.imageBase64 ? (
-                    <Avatar
-                      alt={acc.accountName}
-                      src={`data:image/png;base64,${acc.imageBase64}`}
-                    />
-                  ) : (
-                    <Avatar>{acc.accountName?.[0]}</Avatar>
+            {paginatedAccounts.length > 0 ? (
+              paginatedAccounts.map((acc) => (
+                <TableRow key={acc.accountID}>
+                  <TableCell>{acc.accountID}</TableCell>
+                  <TableCell>
+                    {acc.imageBase64 ? (
+                      <Avatar
+                        alt={acc.accountName}
+                        src={`data:image/png;base64,${acc.imageBase64}`}
+                      />
+                    ) : (
+                      <Avatar>{acc.accountName?.[0]}</Avatar>
+                    )}
+                  </TableCell>
+                  <TableCell>{acc.accountName}</TableCell>
+                  <TableCell>{acc.username}</TableCell>
+                  <TableCell>{acc.email}</TableCell>
+                  <TableCell>{acc.phoneNumber}</TableCell>
+                  <TableCell>{acc.local}</TableCell>
+                  <TableCell>{acc.dateOfBirth}</TableCell>
+                  <TableCell>{acc.admin ? "✅" : "❌"}</TableCell>
+                  {currentRole === "ADMIN" && (
+                    <>
+                      <TableCell>
+                        <Select
+                          value={acc.typeAccount || "USER"}
+                          onChange={(e) =>
+                            handleRoleChange(acc.accountID, e.target.value)
+                          }
+                          size="small"
+                        >
+                          <MenuItem value="USER">USER</MenuItem>
+                          <MenuItem value="EMPLOYEE">EMPLOYEE</MenuItem>
+                          <MenuItem value="ADMIN">ADMIN</MenuItem>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={() =>
+                            handleRoleChange(acc.accountID, acc.typeAccount)
+                          }
+                        >
+                          Lưu
+                        </Button>
+                      </TableCell>
+                    </>
                   )}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={10} align="center">
+                  Không có tài khoản nào.
                 </TableCell>
-                <TableCell>{acc.accountName}</TableCell>
-                <TableCell>{acc.username}</TableCell>
-                <TableCell>{acc.email}</TableCell>
-                <TableCell>{acc.phoneNumber}</TableCell>
-                <TableCell>{acc.local}</TableCell>
-                <TableCell>{acc.dateOfBirth}</TableCell>
-                <TableCell>{acc.admin ? "✅" : "❌"}</TableCell>
-                {currentRole === "ADMIN" && (
-                  <>
-                    <TableCell>
-                      <Select
-                        value={acc.typeAccount || "USER"}
-                        onChange={(e) =>
-                          handleRoleChange(acc.accountID, e.target.value)
-                        }
-                        size="small"
-                      >
-                        <MenuItem value="USER">USER</MenuItem>
-                        <MenuItem value="EMPLOYEE">EMPLOYEE</MenuItem>
-                        <MenuItem value="ADMIN">ADMIN</MenuItem>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() =>
-                          handleRoleChange(acc.accountID, acc.typeAccount)
-                        }
-                      >
-                        Lưu
-                      </Button>
-                    </TableCell>
-                  </>
-                )}
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </TableContainer>
+      <TablePagination
+        component="div"
+        count={accounts.length}
+        page={page}
+        onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        labelRowsPerPage="Số dòng mỗi trang:"
+        rowsPerPageOptions={[5, 10, 20, 50]}
+      />
       <ToastContainer
         position="top-right"
         autoClose={3000}

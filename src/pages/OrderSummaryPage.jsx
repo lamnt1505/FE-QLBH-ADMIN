@@ -18,6 +18,7 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  TablePagination,
 } from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -32,13 +33,16 @@ const OrderSummaryPage = () => {
   const [openAddressDialog, setOpenAddressDialog] = useState(false);
   const [addressInfo, setAddressInfo] = useState(null);
 
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
   useEffect(() => {
     fetchOrders();
   }, []);
 
   useEffect(() => {
     const interval = setInterval(async () => {
-      console.log("⏳ Kiểm tra và cập nhật trạng thái đơn hàng tự động...");
+      console.log("Kiểm tra và cập nhật trạng thái đơn hàng tự động");
       try {
         const res = await axios.get(
           "http://localhost:8080/dossier-statistic/summary"
@@ -47,12 +51,10 @@ const OrderSummaryPage = () => {
 
         currentOrders.forEach(async (order) => {
           if (order.status === "Hoàn thành" || order.status === "Đã huỷ") {
-            console.log(`⏭️ Bỏ qua đơn #${order.orderId} (${order.status})`);
+            console.log(`=> Bỏ qua đơn #${order.orderId} (${order.status})`);
             return;
           }
-
           let nextStatus = "";
-
           switch (order.status) {
             case "Chờ duyệt":
               nextStatus = "Đang xử lý";
@@ -66,9 +68,7 @@ const OrderSummaryPage = () => {
             default:
               nextStatus = order.status;
           }
-
           if (nextStatus === order.status) return;
-
           try {
             const updateRes = await axios.post(
               "http://localhost:8080/dossier-statistic/--update-status",
@@ -104,10 +104,9 @@ const OrderSummaryPage = () => {
       } catch (err) {
         console.error("🚨 Lỗi khi fetch danh sách đơn hàng:", err);
       }
-    }, 1 * 60 * 1000);
-
+    }, 1 * 60 * 100);
     return () => clearInterval(interval);
-  }, []); // 👈 Quan trọng: chỉ chạy 1 lần khi component mount
+  }, []);
 
   const handleOpenDialog = (order) => {
     setSelectedOrder(order);
@@ -126,7 +125,6 @@ const OrderSummaryPage = () => {
       alert("Vui lòng chọn trạng thái!");
       return;
     }
-
     try {
       const res = await axios.post(
         "http://localhost:8080/dossier-statistic/--update-status",
@@ -201,109 +199,235 @@ const OrderSummaryPage = () => {
     }
   };
 
+  const paginatedOrders = orders.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   return (
-    <Box sx={{ width: "100%", p: 10 }}>
-      <Typography variant="h5" gutterBottom>
-        QUẢN LÝ ĐƠN HÀNG
+    <Box
+      sx={{
+        width: "100%",
+        px: 6,
+        py: 4,
+        backgroundColor: "#f9fafc",
+        minHeight: "100vh",
+      }}
+    >
+      <Typography
+        variant="h5"
+        gutterBottom
+        sx={{
+          fontWeight: "bold",
+          color: "#1976d2",
+          mb: 3,
+          textTransform: "uppercase",
+        }}
+      >
+        Quản lý đơn hàng
       </Typography>
 
       <TableContainer
         component={Paper}
-        sx={{ boxShadow: "0 4px 10px rgba(0,0,0,0.1)" }}
+        sx={{
+          boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
+          borderRadius: 3,
+          overflow: "hidden",
+        }}
       >
         <Table>
-          <TableHead sx={{ backgroundColor: "#1976d2" }}>
+          <TableHead
+            sx={{
+              background: "linear-gradient(90deg, #1976d2 0%, #42a5f5 100%)",
+            }}
+          >
             <TableRow>
-              <TableCell sx={{ color: "white" }}>MÃ ĐƠN HÀNG</TableCell>
-              <TableCell sx={{ color: "white" }}>NGÀY ĐẶT HÀNG</TableCell>
-              <TableCell sx={{ color: "white" }}>KHÁCH HÀNG</TableCell>
-              <TableCell sx={{ color: "white" }}>SỐ ĐIỆN THOẠI</TableCell>
-              <TableCell sx={{ color: "white" }}>TỔNG TIỀN</TableCell>
-              <TableCell sx={{ color: "white" }}>
-                PHƯƠNG THỨC THANH TOÁN
-              </TableCell>
-              <TableCell sx={{ color: "white" }}>TRẠNG THÁI</TableCell>
-              <TableCell sx={{ color: "white" }}>THAO TÁC</TableCell>
+              {[
+                "MÃ ĐƠN HÀNG",
+                "NGÀY ĐẶT HÀNG",
+                "KHÁCH HÀNG",
+                "SỐ ĐIỆN THOẠI",
+                "TỔNG TIỀN",
+                "PHƯƠNG THỨC THANH TOÁN",
+                "TRẠNG THÁI",
+                "THAO TÁC",
+              ].map((header, i) => (
+                <TableCell
+                  key={i}
+                  sx={{
+                    color: "white",
+                    fontWeight: 600,
+                    textAlign: "center",
+                    fontSize: "0.95rem",
+                  }}
+                >
+                  {header}
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {orders.map((order, index) => (
-              <TableRow key={index}>
-                <TableCell>
-                  <Button
-                    variant="text"
-                    onClick={() => handleViewDetails(order.orderId)}
-                  >
-                    {order.orderId}
-                  </Button>
-                </TableCell>
-                <TableCell>{order.orderDate.join("-")}</TableCell>
-                <TableCell>{order.customerName}</TableCell>
-                <TableCell>{order.phoneNumber}</TableCell>
-                <TableCell>{order.totalAmount}</TableCell>
-                <TableCell>{order.paymentMethod}</TableCell>
-                <TableCell>{order.status || "Chờ duyệt"}</TableCell>
-                <TableCell>
-                  <Box
-                    sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}
-                  >
+            {paginatedOrders.length > 0 ? (
+              paginatedOrders.map((order, index) => (
+                <TableRow
+                  key={index}
+                  sx={{
+                    "&:hover": {
+                      backgroundColor: "#f1f7ff",
+                      transition: "0.2s",
+                    },
+                  }}
+                >
+                  <TableCell align="center">
                     <Button
-                      variant="contained"
-                      size="small"
-                      onClick={() => handleOpenDialog(order)}
+                      variant="text"
+                      color="primary"
+                      onClick={() => handleViewDetails(order.orderId)}
+                      sx={{ fontWeight: 600 }}
                     >
-                      DUYỆT
+                      #{order.orderId}
                     </Button>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={() => handleViewAddress(order.orderId)}
+                  </TableCell>
+                  <TableCell align="center">
+                    {order.orderDate.join("-")}
+                  </TableCell>
+                  <TableCell align="center">{order.customerName}</TableCell>
+                  <TableCell align="center">{order.phoneNumber}</TableCell>
+                  <TableCell align="center">
+                    {order.totalAmount.toLocaleString()} ₫
+                  </TableCell>
+                  <TableCell align="center">{order.paymentMethod}</TableCell>
+                  <TableCell align="center">
+                    <Box
+                      sx={{
+                        px: 1.5,
+                        py: 0.5,
+                        borderRadius: "20px",
+                        display: "inline-block",
+                        backgroundColor:
+                          order.status === "Hoàn thành"
+                            ? "#c8e6c9"
+                            : order.status === "Đã huỷ"
+                            ? "#ffcdd2"
+                            : order.status === "Đang giao hàng"
+                            ? "#fff9c4"
+                            : "#e3f2fd",
+                        color:
+                          order.status === "Hoàn thành"
+                            ? "#2e7d32"
+                            : order.status === "Đã huỷ"
+                            ? "#c62828"
+                            : order.status === "Đang giao hàng"
+                            ? "#f57f17"
+                            : "#1976d2",
+                        fontWeight: 600,
+                      }}
                     >
-                      XEM ĐỊA CHỈ
-                    </Button>
-                  </Box>
+                      {order.status || "Chờ duyệt"}
+                    </Box>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Box
+                      sx={{
+                        display: "flex",
+                        gap: 1,
+                        justifyContent: "center",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        onClick={() => handleOpenDialog(order)}
+                        sx={{
+                          textTransform: "none",
+                          borderRadius: "20px",
+                          px: 2,
+                        }}
+                      >
+                        Duyệt
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="secondary"
+                        size="small"
+                        onClick={() => handleViewAddress(order.orderId)}
+                        sx={{
+                          textTransform: "none",
+                          borderRadius: "20px",
+                          px: 2,
+                        }}
+                      >
+                        Xem địa chỉ
+                      </Button>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                  <Typography color="text.secondary">
+                    Không có đơn hàng nào.
+                  </Typography>
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
+        <TablePagination
+          component="div"
+          count={orders.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Số dòng mỗi trang:"
+          rowsPerPageOptions={[5, 10, 20, 50]}
+        />
       </TableContainer>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>Chọn trạng thái đơn hàng</DialogTitle>
+      {}
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: "bold", color: "#1976d2" }}>
+          Chọn trạng thái đơn hàng
+        </DialogTitle>
         <DialogContent>
           <RadioGroup
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
-            <FormControlLabel
-              value="Chờ duyệt"
-              control={<Radio />}
-              label="Chờ duyệt"
-            />
-            <FormControlLabel
-              value="Đang xử lý"
-              control={<Radio />}
-              label="Đang xử lý"
-            />
-            <FormControlLabel
-              value="Đang giao hàng"
-              control={<Radio />}
-              label="Đang giao hàng"
-            />
-            <FormControlLabel
-              value="Hoàn thành"
-              control={<Radio />}
-              label="Hoàn thành"
-            />
-            <FormControlLabel
-              value="Đã huỷ"
-              control={<Radio />}
-              label="Đã huỷ"
-            />
+            {[
+              "Chờ duyệt",
+              "Đang xử lý",
+              "Đang giao hàng",
+              "Hoàn thành",
+              "Đã huỷ",
+            ].map((label, i) => (
+              <FormControlLabel
+                key={i}
+                value={label}
+                control={<Radio color="primary" />}
+                label={label}
+              />
+            ))}
           </RadioGroup>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={handleCloseDialog}>Hủy</Button>
           <Button
             onClick={handleUpdateStatus}
@@ -315,14 +439,18 @@ const OrderSummaryPage = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Dialog chi tiết */}
       <Dialog
         open={openDetailDialog}
         onClose={() => setOpenDetailDialog(false)}
         maxWidth="md"
         fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
       >
-        <DialogTitle>CHI TIẾT ĐƠN HÀNG</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{ fontWeight: "bold", color: "#1976d2" }}>
+          Chi tiết đơn hàng
+        </DialogTitle>
+        <DialogContent dividers>
           <TableContainer>
             <Table>
               <TableHead>
@@ -338,7 +466,7 @@ const OrderSummaryPage = () => {
                   <TableRow key={index}>
                     <TableCell>{item.productId}</TableCell>
                     <TableCell>{item.productName}</TableCell>
-                    <TableCell>{item.price}</TableCell>
+                    <TableCell>{item.price.toLocaleString()} ₫</TableCell>
                     <TableCell>{item.amount}</TableCell>
                   </TableRow>
                 ))}
@@ -351,41 +479,46 @@ const OrderSummaryPage = () => {
         </DialogActions>
       </Dialog>
 
-      <ToastContainer position="top-right" autoClose={3000} />
+      {/* Dialog địa chỉ */}
       <Dialog
         open={openAddressDialog}
         onClose={() => setOpenAddressDialog(false)}
         maxWidth="sm"
         fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
       >
-        <DialogTitle>THÔNG TIN GIAO HÀNG</DialogTitle>
+        <DialogTitle sx={{ fontWeight: "bold", color: "#1976d2" }}>
+          Thông tin giao hàng
+        </DialogTitle>
         <DialogContent dividers>
           {addressInfo ? (
             <>
-              <p>
-                <strong>TÊN NGƯỜI NHẬN:</strong> {addressInfo.receiverName}
-              </p>
-              <p>
-                <strong>HỌ VÀ TÊN:</strong> {addressInfo.username || "Không có"}
-              </p>
-              <p>
+              <Typography>
+                <strong>Tên người nhận:</strong> {addressInfo.receiverName}
+              </Typography>
+              <Typography>
+                <strong>Họ và tên:</strong> {addressInfo.username || "Không có"}
+              </Typography>
+              <Typography>
                 <strong>SĐT:</strong> {addressInfo.receiverPhone}
-              </p>
-              <p>
-                <strong>ĐỊA CHỈ:</strong> {addressInfo.shippingAddress}
-              </p>
-              <p>
-                <strong>GHI CHÚ:</strong> {addressInfo.note || "Không có"}
-              </p>
+              </Typography>
+              <Typography>
+                <strong>Địa chỉ:</strong> {addressInfo.shippingAddress}
+              </Typography>
+              <Typography>
+                <strong>Ghi chú:</strong> {addressInfo.note || "Không có"}
+              </Typography>
             </>
           ) : (
-            <p>Đang tải dữ liệu...</p>
+            <Typography>Đang tải dữ liệu...</Typography>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenAddressDialog(false)}>ĐÓNG</Button>
+          <Button onClick={() => setOpenAddressDialog(false)}>Đóng</Button>
         </DialogActions>
       </Dialog>
+
+      <ToastContainer position="top-right" autoClose={3000} />
     </Box>
   );
 };

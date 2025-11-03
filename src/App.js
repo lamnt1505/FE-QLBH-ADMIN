@@ -15,6 +15,7 @@ import StorageList from "./pages/StorageList";
 import StorageForm from "./pages/StorageForm";
 import LoginPage from "./pages/LoginPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import DiscountList from "./pages/DiscountList";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/discountslist" element={<DiscountList />} />
             <Route path="/products" element={<Products />} />
             <Route path="/add-product" element={<AddProduct />} />
             <Route path="/categories" element={<Categories />} />
@@ -34,7 +36,7 @@ function App() {
             <Route path="/statisticals" element={<Statisticals />} />
             <Route path="/orders" element={<OrderSummaryPages />} />
             <Route path="/votes" element={<ProductVotePage />} />
-            <Route path="/discounts" element={<CreateDiscountPage />} />
+            <Route path="/add-discounts" element={<CreateDiscountPage />} />
             <Route path="/accounts" element={<AccountList />} />
             <Route path="/storages" element={<StorageList />} />
             <Route path="/add-storage" element={<StorageForm />} />

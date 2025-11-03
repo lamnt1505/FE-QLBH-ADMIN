@@ -506,7 +506,6 @@ const Products = () => {
             onChange={(e) => setUpdatePrice(e.target.value)}
             fullWidth
           />
-
           <TextField
             label="Mô tả"
             multiline

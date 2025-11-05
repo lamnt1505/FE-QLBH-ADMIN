@@ -22,7 +22,7 @@ import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useLocation } from "react-router-dom";
-import { Pagination } from "@mui/material";
+import API_BASE_URL from "../config/config.js";
 
 const Categories = () => {
   const location = useLocation();
@@ -62,7 +62,7 @@ useEffect(() => {
   const fetchCategories = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/category/paginated",
+        `${API_BASE_URL}/api/v1/category/paginated`,
         {
           params: {
             page,
@@ -87,7 +87,7 @@ useEffect(() => {
   };
   const handleConfirmAdd = async () => {
     try {
-      await axios.post("http://localhost:8080/api/v1/category/add", {
+      await axios.post(`${API_BASE_URL}/api/v1/category/add`, {
         name: newName,
       });
       toast.success("Thêm loại sản phẩm thành công!");
@@ -111,11 +111,10 @@ useEffect(() => {
     setUpdateId(null);
     setUpdateName("");
   };
-
   const handleConfirmUpdate = async () => {
     try {
       await axios.put(
-        `http://localhost:8080/api/v1/category/${updateId}/update`,
+        `${API_BASE_URL}/api/v1/category/${updateId}/update`,
         {
           name: updateName,
         }
@@ -142,7 +141,7 @@ useEffect(() => {
   const handleConfirmDelete = async () => {
     try {
       await axios.delete(
-        `http://localhost:8080/api/v1/category/${deleteId}/delete`
+        `${API_BASE_URL}/api/v1/category/${deleteId}/delete`
       );
       toast.success("Xóa thành công!");
       handleCloseDelete();
@@ -166,7 +165,7 @@ useEffect(() => {
 
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/v1/category/import",
+         `${API_BASE_URL}/api/v1/category/import`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
@@ -181,7 +180,7 @@ useEffect(() => {
   const handleDownloadTemplate = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8080/api/v1/category/download",
+         `${API_BASE_URL}/api/v1/category/download`,
         { responseType: "blob" }
       );
 

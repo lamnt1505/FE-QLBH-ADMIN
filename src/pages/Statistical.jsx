@@ -22,6 +22,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Navigate } from "react-router-dom";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import API_BASE_URL from "../config/config.js";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -53,7 +54,7 @@ const StatisticsPage = () => {
     const fetchDiscountStats = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:8080/api/export/statistics/discount"
+          `${API_BASE_URL}/api/export/statistics/discount`
         );
         setDiscountStats(res.data);
       } catch (err) {
@@ -68,10 +69,10 @@ const StatisticsPage = () => {
     const fetchData = async () => {
       try {
         const [productRes, yearRes, monthRes, quarterRes] = await Promise.all([
-          axios.get("http://localhost:8080/api/statistics/product"),
-          axios.get("http://localhost:8080/api/statistics/year"),
-          axios.get("http://localhost:8080/api/statistics/month"),
-          axios.get("http://localhost:8080/api/statistics/quarter"),
+          axios.get(`${API_BASE_URL}/api/statistics/product`),
+          axios.get(`${API_BASE_URL}/api/statistics/year`),
+          axios.get(`${API_BASE_URL}/api/statistics/month`),
+          axios.get(`${API_BASE_URL}/api/statistics/quarter`),
         ]);
 
         setProductStats(productRes.data);
@@ -115,7 +116,7 @@ const StatisticsPage = () => {
   const handleExportQuarterExcel = async () => {
     try {
       const res = await fetch(
-        "http://localhost:8080/api/export/quarter/export-excel",
+        `${API_BASE_URL}/api/export/quarter/export-excel`,
         {
           method: "GET",
         }
@@ -141,7 +142,7 @@ const StatisticsPage = () => {
 
   const handleExportQuarterPDF = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/v1/reports/quarter", {
+      const res = await fetch(`${API_BASE_URL}/api/v1/reports/quarter`, {
         method: "GET",
       });
 
@@ -173,7 +174,7 @@ const StatisticsPage = () => {
 
   const handleExportExcel = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/export/product", {
+      const res = await fetch(`${API_BASE_URL}/api/export/product`, {
         method: "GET",
       });
 
@@ -197,7 +198,7 @@ const StatisticsPage = () => {
 
   const handleExportPDF = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/v1/reports/product", {
+      const res = await fetch(`${API_BASE_URL}/api/v1/reports/product`, {
         method: "GET",
       });
 
@@ -221,7 +222,7 @@ const StatisticsPage = () => {
 
   const handleExportYearExcel = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/export/year", {
+      const res = await fetch(`${API_BASE_URL}/api/export/year`, {
         method: "GET",
       });
 
@@ -245,7 +246,7 @@ const StatisticsPage = () => {
 
   const handleExportYearPDF = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/v1/reports/year", {
+      const res = await fetch(`${API_BASE_URL}/api/v1/reports/year`, {
         method: "GET",
       });
 
@@ -269,7 +270,7 @@ const StatisticsPage = () => {
 
   const handleExportMonthExcel = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/export/month", {
+      const res = await fetch(`${API_BASE_URL}/api/export/month`, {
         method: "GET",
       });
 
@@ -293,7 +294,7 @@ const StatisticsPage = () => {
 
   const handleExportMonthPDF = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/v1/reports/month", {
+      const res = await fetch(`${API_BASE_URL}/api/v1/reports/month`, {
         method: "GET",
       });
 
@@ -737,7 +738,7 @@ const StatisticsPage = () => {
 
                 try {
                   const res = await axios.get(
-                    `http://localhost:8080/api/export/profit?startDate=${startDate}&endDate=${endDate}`
+                    `${API_BASE_URL}/api/export/profit?startDate=${startDate}&endDate=${endDate}`
                   );
                   setProfitStats(res.data);
                 } catch (err) {

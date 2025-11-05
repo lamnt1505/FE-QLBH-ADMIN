@@ -28,6 +28,7 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Pagination } from "@mui/material";
+import API_BASE_URL from "../config/config.js";
 
 const Products = () => {
   const navigate = useNavigate();
@@ -65,9 +66,9 @@ const Products = () => {
   const handleOpenUpdate = async (id) => {
     try {
       const [productRes, categoryRes, trademarkRes] = await Promise.all([
-        axios.get(`http://localhost:8080/api/v1/product/${id}/get`),
-        axios.get(`http://localhost:8080/api/v1/category/Listgetall`),
-        axios.get(`http://localhost:8080/api/trademark/gettrademark`),
+        axios.get(`${API_BASE_URL}/api/v1/product/${id}/get`),
+        axios.get(`${API_BASE_URL}/api/v1/category/Listgetall`),
+        axios.get(`${API_BASE_URL}/api/trademark/gettrademark`),
       ]);
 
       const product = productRes.data;
@@ -114,7 +115,7 @@ const Products = () => {
       }
 
       await axios.put(
-        `http://localhost:8080/api/v1/product/update/${updateId}`,
+        `${API_BASE_URL}/api/v1/product/update/${updateId}`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -146,7 +147,7 @@ const Products = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/v1/product/import",
+        `${API_BASE_URL}/api/v1/product/import`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -164,7 +165,7 @@ const Products = () => {
   const handleOpenDetail = async (id) => {
     try {
       const res = await axios.get(
-        `http://localhost:8080/api/v1/product/${id}/get`
+        `${API_BASE_URL}/api/v1/product/${id}/get`
       );
       setSelectedProduct(res.data);
       setOpen(true);
@@ -188,7 +189,7 @@ const Products = () => {
   const handleDownloadTemplate = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8080/api/v1/product/download",
+        `${API_BASE_URL}/api/v1/product/download`,
         { responseType: "blob" }
       );
 
@@ -208,7 +209,7 @@ const Products = () => {
   const handleConfirmDelete = async () => {
     try {
       await axios.delete(
-        `http://localhost:8080/api/v1/product/delete/${deleteId}`
+        `${API_BASE_URL}/api/v1/product/delete/${deleteId}`
       );
       toast.success("Xóa sản phẩm thành công!");
       handleCloseDelete();
@@ -224,7 +225,7 @@ const Products = () => {
   const fetchProducts = async (page, size) => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/product/paginated",
+        `${API_BASE_URL}/api/v1/product/paginated`,
         {
           params: { page, size, sort: ["productID", "asc"] },
           withCredentials: true,
@@ -242,7 +243,7 @@ const Products = () => {
   }, [page, size]);
   useEffect(() => {
     axios
-      .get("http://localhost:8080/api/v1/product/getall")
+      .get(`${API_BASE_URL}/api/v1/product/getall`)
       .then((response) => {
         setProducts(response.data);
       })
@@ -254,7 +255,7 @@ const Products = () => {
     const fetchCategories = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:8080/api/v1/category/Listgetall"
+          `${API_BASE_URL}/api/v1/category/Listgetall`
         );
         setCategories(res.data);
       } catch (err) {
@@ -265,7 +266,7 @@ const Products = () => {
     const fetchTrademarks = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:8080/api/trademark/gettrademark"
+          `${API_BASE_URL}/api/trademark/gettrademark`
         );
         setTrademarks(res.data);
       } catch (err) {
@@ -276,6 +277,7 @@ const Products = () => {
     fetchCategories();
     fetchTrademarks();
   }, []);
+  
   return (
     <Box sx={{ p: 2, m: 0, width: "100%" }}>
       <Typography variant="h5" gutterBottom sx={{ px: 2, pt: 2, pb: 1 }}>

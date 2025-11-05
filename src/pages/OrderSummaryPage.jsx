@@ -22,6 +22,7 @@ import {
 } from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../config/config.js";
 
 const OrderSummaryPage = () => {
   const [orders, setOrders] = useState([]);
@@ -45,7 +46,7 @@ const OrderSummaryPage = () => {
       console.log("Kiểm tra và cập nhật trạng thái đơn hàng tự động");
       try {
         const res = await axios.get(
-          "http://localhost:8080/dossier-statistic/summary"
+          `${API_BASE_URL}/dossier-statistic/summary`
         );
         const currentOrders = res.data;
 
@@ -71,7 +72,7 @@ const OrderSummaryPage = () => {
           if (nextStatus === order.status) return;
           try {
             const updateRes = await axios.post(
-              "http://localhost:8080/dossier-statistic/--update-status",
+              `${API_BASE_URL}/dossier-statistic/--update-status`,
               null,
               { params: { orderid: order.orderId, status: nextStatus } }
             );
@@ -127,7 +128,7 @@ const OrderSummaryPage = () => {
     }
     try {
       const res = await axios.post(
-        "http://localhost:8080/dossier-statistic/--update-status",
+        `${API_BASE_URL}/dossier-statistic/--update-status`,
         null,
         {
           params: {
@@ -166,7 +167,7 @@ const OrderSummaryPage = () => {
   const fetchOrders = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/dossier-statistic/summary"
+        `${API_BASE_URL}/dossier-statistic/summary`
       );
       setOrders(res.data);
     } catch (err) {
@@ -176,7 +177,7 @@ const OrderSummaryPage = () => {
 
   const handleViewDetails = async (orderId) => {
     try {
-      const res = await axios.get(`http://localhost:8080/orders/${orderId}`);
+      const res = await axios.get(`${API_BASE_URL}/orders/${orderId}`);
       setOrderDetails(res.data.oldOrders || []);
       setOpenDetailDialog(true);
     } catch (err) {
@@ -188,7 +189,7 @@ const OrderSummaryPage = () => {
   const handleViewAddress = async (orderId) => {
     try {
       const res = await fetch(
-        `http://localhost:8080/orders/address/${orderId}`
+        `${API_BASE_URL}/orders/address/${orderId}`
       );
       if (!res.ok) throw new Error("Lỗi khi lấy địa chỉ");
       const data = await res.json();

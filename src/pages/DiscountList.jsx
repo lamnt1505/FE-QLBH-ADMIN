@@ -24,6 +24,7 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+import API_BASE_URL from "../config/config.js";
 
 const DiscountList = () => {
   const [discounts, setDiscounts] = useState([]);
@@ -45,7 +46,7 @@ const DiscountList = () => {
   });
 
   const handleOpenConfirm = (id) => {
-    console.log("ID được chọn:", id);//đã có id truyền vào
+    console.log("ID được chọn:", id);
     setSelectedId(id);
     setOpenConfirm(true);
   };
@@ -61,9 +62,7 @@ const DiscountList = () => {
 
   const handleOpenUpdate = async (id) => {
     try {
-      const res = await axios.get(
-        `http://localhost:8080/api/v1/discounts/${id}/get`
-      );
+      const res = await axios.get(`${API_BASE_URL}/api/v1/discounts/${id}/get`);
       if (res.data.success) {
         const data = res.data.data;
         setSelectedDiscount(data);
@@ -102,7 +101,7 @@ const DiscountList = () => {
   const handleSubmitUpdate = async () => {
     try {
       const res = await axios.put(
-        `http://localhost:8080/api/v1/discounts/${selectedDiscount.discountID}`,
+        `${API_BASE_URL}/api/v1/discounts/${selectedDiscount.discountID}`,
         formData
       );
       if (res.data.success) {
@@ -120,9 +119,7 @@ const DiscountList = () => {
 
   const fetchDiscounts = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:8080/api/v1/discounts/list"
-      );
+      const res = await axios.get(`${API_BASE_URL}/api/v1/discounts/list`);
       setDiscounts(res.data);
     } catch (err) {
       console.error("Lỗi khi lấy danh sách mã giảm giá:", err);
@@ -156,7 +153,7 @@ const DiscountList = () => {
   const handleToggleActive = async (id) => {
     try {
       const res = await axios.put(
-        `http://localhost:8080/api/v1/discounts/${id}/toggle`
+        `${API_BASE_URL}/api/v1/discounts/${id}/toggle`
       );
       toast.success(res.data.message);
       fetchDiscounts();
@@ -169,7 +166,7 @@ const DiscountList = () => {
   const handleDeleteDiscount = async () => {
     try {
       const res = await axios.delete(
-        `http://localhost:8080/api/v1/discounts/${selectedId}`
+        `${API_BASE_URL}/api/v1/discounts/${selectedId}`
       );
 
       if (res.data.success) {
@@ -432,33 +429,33 @@ const DiscountList = () => {
         </TableContainer>
         <ToastContainer position="top-right" autoClose={3000} />
         <Dialog
-  open={openConfirm}
-  onClose={handleCloseConfirm}
-  maxWidth="xs"
-  fullWidth
->
-  <DialogTitle sx={{ color: "#d32f2f", fontWeight: "bold" }}>
-    Xác nhận xóa
-  </DialogTitle>
-  <DialogContent>
-    <Typography>
-      Bạn có chắc chắn muốn xóa mã giảm giá này không? <br />
-      Hành động này không thể hoàn tác.
-    </Typography>
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={handleCloseConfirm} color="inherit">
-      Hủy
-    </Button>
-    <Button
-      onClick={handleDeleteDiscount}
-      color="error"
-      variant="contained"
-    >
-      Xóa
-    </Button>
-  </DialogActions>
-</Dialog>
+          open={openConfirm}
+          onClose={handleCloseConfirm}
+          maxWidth="xs"
+          fullWidth
+        >
+          <DialogTitle sx={{ color: "#d32f2f", fontWeight: "bold" }}>
+            Xác nhận xóa
+          </DialogTitle>
+          <DialogContent>
+            <Typography>
+              Bạn có chắc chắn muốn xóa mã giảm giá này không? <br />
+              Hành động này không thể hoàn tác.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseConfirm} color="inherit">
+              Hủy
+            </Button>
+            <Button
+              onClick={handleDeleteDiscount}
+              color="error"
+              variant="contained"
+            >
+              Xóa
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </>
   );

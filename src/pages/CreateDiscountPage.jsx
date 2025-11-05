@@ -16,6 +16,7 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/Products/addProduct.css";
+import API_BASE_URL from "../config/config.js";
 
 const CreateDiscountPage = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -67,7 +68,7 @@ const CreateDiscountPage = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/v1/discounts/generate",
+        `${API_BASE_URL}/api/v1/discounts/generate`,
         {
           discountName: formData.discountName,
           discountPercent: formData.discountPercent,

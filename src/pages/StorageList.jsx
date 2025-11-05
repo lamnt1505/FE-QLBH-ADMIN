@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../config/config.js";
 
 const StorageList = () => {
   const [storages, setStorages] = useState([]);
@@ -45,7 +46,7 @@ const StorageList = () => {
   const fetchStorages = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/storage/Listgetall"
+        `${API_BASE_URL}/api/v1/storage/Listgetall`
       );
       setStorages(res.data);
     } catch (err) {
@@ -56,7 +57,7 @@ const StorageList = () => {
   const fetchProducts = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/product/Listgetall"
+        `${API_BASE_URL}/api/v1/product/Listgetall`
       );
       setProducts(res.data);
     } catch (err) {
@@ -67,7 +68,7 @@ const StorageList = () => {
   const handleConfirmDelete = async () => {
     if (!deleteId) return;
     try {
-      await axios.delete(`http://localhost:8080/api/v1/storage/delete/${deleteId}`);
+      await axios.delete(`${API_BASE_URL}/api/v1/storage/delete/${deleteId}`);
       setStorages(storages.filter((s) => s.idImport !== deleteId));
       toast.success("Xóa thành công!");
     } catch (err) {
@@ -86,7 +87,7 @@ const StorageList = () => {
   const handleOpenUpdate = async (storage) => {
     try {
       const res = await axios.get(
-        `http://localhost:8080/api/v1/storage/${storage.idImport}/get`
+        `${API_BASE_URL}/api/v1/storage/${storage.idImport}/get`
       );
       const detail = res.data;
 
@@ -131,7 +132,7 @@ const StorageList = () => {
 
     try {
       await axios.put(
-        `http://localhost:8080/api/v1/storage/update/${selectedStorage.idImport}`,
+        `${API_BASE_URL}/api/v1/storage/update/${selectedStorage.idImport}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );

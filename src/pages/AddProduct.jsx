@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, TextField, Typography, MenuItem } from "@mui/material";
 import axios from "axios";
+import API_BASE_URL from "../config/config.js";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -24,12 +25,11 @@ export default function AddProduct() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8080/api/v1/category/Listgetall")
+      .get(`${API_BASE_URL}/api/v1/category/Listgetall`)
       .then((res) => setCategories(res.data))
       .catch((err) => console.error("Lỗi load categories:", err));
-
     axios
-      .get("http://localhost:8080/api/trademark/gettrademark")
+      .get(`${API_BASE_URL}/api/trademark/gettrademark`)
       .then((res) => {
         console.log("Trademarks API:", res.data);
         setTrademarks(res.data);
@@ -50,7 +50,6 @@ export default function AddProduct() {
 
   const validateForm = () => {
     let newErrors = {};
-
     if (!formData.name.trim())
       newErrors.name = "Tên sản phẩm không được để trống";
     if (!formData.description.trim())
@@ -84,7 +83,7 @@ export default function AddProduct() {
 
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/v1/product/add",
+        `${API_BASE_URL}/api/v1/product/add`,
         data,
         {
           headers: { "Content-Type": "multipart/form-data" },

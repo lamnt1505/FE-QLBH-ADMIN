@@ -21,6 +21,7 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../config/config.js";
 
 const Trademarks = () => {
   const fileInputRef = useRef(null);
@@ -41,7 +42,7 @@ const Trademarks = () => {
   const fetchTrademarks = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/trademark/gettrademark"
+        `${API_BASE_URL}/api/trademark/gettrademark`
       );
       setTrademarks(res.data);
     } catch (err) {
@@ -55,7 +56,7 @@ const Trademarks = () => {
   };
   const handleConfirmAdd = async () => {
     try {
-      await axios.post("http://localhost:8080/api/trademark/add", {
+      await axios.post(`${API_BASE_URL}/api/trademark/add`, {
         tradeName: newName.trim(),
       });
       toast.success("✅ Thêm thương hiệu thành công!");
@@ -95,7 +96,7 @@ const Trademarks = () => {
     }
     try {
       await axios.put(
-        `http://localhost:8080/api/trademark/update/${updateId}`,
+        `${API_BASE_URL}/api/trademark/update/${updateId}`,
         {
           tradeID: updateId,
           tradeName: updateName,
@@ -120,7 +121,7 @@ const Trademarks = () => {
   const handleConfirmDelete = async () => {
     try {
       await axios.delete(
-        `http://localhost:8080/api/trademark/delete/${deleteId}`
+        `${API_BASE_URL}/api/trademark/delete/${deleteId}`
       );
       toast.success("Xóa thành công!");
       handleCloseDelete();
@@ -142,7 +143,7 @@ const Trademarks = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/trademark/import",
+        `${API_BASE_URL}/api/trademark/import`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
@@ -156,7 +157,7 @@ const Trademarks = () => {
   const handleDownloadTemplate = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8080/api/trademark/download",
+        `${API_BASE_URL}/api/trademark/download`,
         { responseType: "blob" }
       );
 

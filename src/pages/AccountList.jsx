@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import API_BASE_URL from "../config/config.js";
 import {
   Box,
   Typography,
@@ -27,7 +28,6 @@ const AccountList = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  console.log("Current Role:", currentRole);
   useEffect(() => {
     fetchAccounts();
   }, []);
@@ -35,7 +35,7 @@ const AccountList = () => {
   const fetchAccounts = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/account/Listgetall"
+        `${API_BASE_URL}/api/v1/account/Listgetall`
       );
       setAccounts(res.data);
     } catch (err) {
@@ -47,7 +47,7 @@ const AccountList = () => {
   const handleRoleChange = async (accountID, newRole) => {
     try {
       await axios.put(
-        `http://localhost:8080/api/v1/account/grant-role/${accountID}?role=${newRole}`,
+        `${API_BASE_URL}/api/v1/account/grant-role/${accountID}?role=${newRole}`,
         {},
         {
           headers: {

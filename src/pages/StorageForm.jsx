@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../config/config.js";
 
 const StorageForm = () => {
   const [products, setProducts] = useState([]);
@@ -27,7 +28,7 @@ const StorageForm = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/v1/product/Listgetall");
+      const res = await axios.get(`${API_BASE_URL}/api/v1/product/Listgetall`);
       setProducts(res.data);
     } catch (err) {
       console.error("Lỗi khi load sản phẩm:", err);
@@ -51,7 +52,7 @@ const StorageForm = () => {
       return;
     }
     try {
-      await axios.post("http://localhost:8080/api/v1/storage/add", form, {
+      await axios.post(`${API_BASE_URL}/api/v1/storage/add`, form, {
         headers: { "Content-Type": "application/json" },
       });
       toast.success("Thêm lưu trữ thành công! Đang chuyển hướng...", {

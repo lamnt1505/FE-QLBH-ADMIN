@@ -14,6 +14,8 @@ import {
 } from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../config/config.js";
+
 const ProductVotePage = () => {
   const [votes, setVotes] = useState([]);
 
@@ -23,7 +25,7 @@ const ProductVotePage = () => {
 
   const fetchVotes = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/v1/votes/List--get--all");
+      const res = await axios.get(`${API_BASE_URL}/api/v1/votes/List--get--all`);
       setVotes(res.data);
     } catch (err) {
       console.error("Lỗi khi lấy danh sách đánh giá:", err);

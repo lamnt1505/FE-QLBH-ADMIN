@@ -3,6 +3,7 @@ import axios from "axios";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import { Box, Card, CardContent, Typography, Grid } from "@mui/material";
+import API_BASE_URL from "../config/config.js";
 
 const Dashboard = () => {
   const [yearlyData, setYearlyData] = useState([]);
@@ -21,7 +22,7 @@ const Dashboard = () => {
 
   const fetchPaymentStatistics = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/payment-method");
+      const res = await axios.get(`${API_BASE_URL}/payment-method`);
       setPaymentStats(res.data);
     } catch (err) {
       console.error("Lỗi khi lấy thống kê phương thức thanh toán:", err);
@@ -31,7 +32,7 @@ const Dashboard = () => {
   const fetchRevenueData = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/export/revenue-by-month"
+        `${API_BASE_URL}/api/export/revenue-by-month`
       );
       setRevenueData(res.data);
     } catch (err) {
@@ -42,7 +43,7 @@ const Dashboard = () => {
   const fetchYearlyData = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/product/yearly"
+        `${API_BASE_URL}/api/v1/product/yearly`
       );
       setYearlyData(res.data);
     } catch (err) {
@@ -52,7 +53,7 @@ const Dashboard = () => {
 
   const fetchSalesData = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/v1/product/sales");
+      const res = await axios.get(`${API_BASE_URL}/api/v1/product/sales`);
       setSalesData(res.data);
     } catch (err) {
       console.error("Lỗi khi lấy dữ liệu theo sản phẩm:", err);
@@ -62,7 +63,7 @@ const Dashboard = () => {
   const fetchDailyRevenueStatus = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/export/revenue-by-day-status"
+        `${API_BASE_URL}/api/export/revenue-by-day-status`
       );
       setDailyRevenueStatus(res.data);
     } catch (err) {

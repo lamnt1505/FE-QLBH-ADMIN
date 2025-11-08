@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   AppBar,
   Toolbar,
@@ -22,7 +22,15 @@ import {
 import MailIcon from "@mui/icons-material/Mail";
 import useAuthCookie from "../hooks/useAuthCookie";
 import { db } from "../firebase/firebaseConfig";
-import { ref, onChildAdded, off, get } from "firebase/database";
+import {
+  ref,
+  onChildAdded,
+  push,
+  off,
+  get,
+  set,
+  onValue,
+} from "firebase/database";
 import API_BASE_URL from "../config/config.js";
 import {
   getAccountById,
@@ -43,6 +51,7 @@ const Header = ({ drawerWidth }) => {
   const [replyText, setReplyText] = useState("");
   const [newMsgCount, setNewMsgCount] = useState(0);
   const [readUsers, setReadUsers] = useState([]);
+  const chatEndRef = useRef(null);
 
   const [openChangePassword, setOpenChangePassword] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
@@ -65,6 +74,12 @@ const Header = ({ drawerWidth }) => {
   });
   const [previewImage, setPreviewImage] = useState("");
   const [loadingUpdate, setLoadingUpdate] = useState(false);
+
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatWithUser]);
 
   useEffect(() => {
     return () => {
@@ -134,9 +149,9 @@ const Header = ({ drawerWidth }) => {
         const base64String = reader.result;
         setAccountInfo((prev) => ({
           ...prev,
-          image: base64String, 
+          image: base64String,
         }));
-        setPreviewImage(reader.result); 
+        setPreviewImage(reader.result);
       };
       reader.readAsDataURL(file);
     }
@@ -168,7 +183,7 @@ const Header = ({ drawerWidth }) => {
     const id = localStorage.getItem("accountId");
 
     try {
-      await updateAccount(id, accountInfo); 
+      await updateAccount(id, accountInfo);
       setMessage("CẬP NHẬT TÀI KHOẢN THÀNH CÔNG ✅");
       setIsSuccess(true);
       setTimeout(() => setOpenEditProfile(false), 1500);
@@ -181,126 +196,92 @@ const Header = ({ drawerWidth }) => {
     }
   };
 
+  // ============ 💬 DANH SÁCH KH ============
   const handleOpenChatList = async () => {
     setOpenChatList(true);
     setLoading(true);
-
     try {
       const snapshot = await get(ref(db, "chat/conversations"));
       if (snapshot.exists()) {
         const data = snapshot.val();
-        const allMessages = [];
 
-        Object.entries(data).forEach(([key, value]) => {
-          if (value.sender && value.timestamp) {
-            allMessages.push({
-              id: key,
-              ...value,
-            });
-          } else {
-            Object.entries(value).forEach(([subKey, subVal]) => {
-              allMessages.push({
-                id: subKey,
-                ...subVal,
-              });
-            });
-          }
+        const users = Object.keys(data || {}).filter(
+          (key) =>
+            data[key] &&
+            typeof data[key] === "object" &&
+            Object.values(data[key])[0]?.sender
+        );
+
+        const latestMsgs = users.map((user) => {
+          const msgs = Object.values(data[user]);
+          const lastMsg = msgs[msgs.length - 1];
+          return { sender: user, ...lastMsg };
         });
 
-        const customerMessages = allMessages.filter(
-          (msg) => msg.sender !== "Admin"
-        );
-
-        const uniqueSenders = Array.from(
-          new Map(customerMessages.map((m) => [m.sender, m])).values()
-        );
-        setMessages(uniqueSenders.reverse());
+        setMessages(latestMsgs.reverse());
       }
     } catch (err) {
-      console.error("Lỗi khi tải tin nhắn:", err);
+      console.error("Lỗi tải tin nhắn:", err);
     } finally {
       setLoading(false);
     }
-
     const chatRef = ref(db, "chat/conversations");
-    onChildAdded(chatRef, (snapshot) => {
-      const newMsg = snapshot.val();
-      if (newMsg && newMsg.sender && newMsg.sender !== "Admin") {
-        setMessages((prev) => {
-          const exists = prev.some((m) => m.sender === newMsg.sender);
-          if (!exists) {
-            return [{ ...newMsg, id: snapshot.key }, ...prev];
-          }
-          return prev;
-        });
-        if (!readUsers.includes(newMsg.sender) && !openChatList) {
-          setNewMsgCount((prev) => prev + 1);
+    onValue(chatRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      let newCount = 0;
+      Object.keys(data).forEach((user) => {
+        const msgs = Object.values(data[user]);
+        const lastMsg = msgs[msgs.length - 1];
+        if (
+          lastMsg &&
+          lastMsg.sender !== "Admin" &&
+          !readUsers.includes(user)
+        ) {
+          newCount++;
         }
-      }
+      });
+
+      setNewMsgCount(newCount);
     });
   };
-
+  // ============ 🧍‍♂️ CHỌN KH ĐỂ CHAT ============
   const handleSelectUser = async (senderName) => {
-    setReadUsers((prev) => [...new Set([...prev, senderName])]);
-    setNewMsgCount((prev) => (prev > 0 ? prev - 1 : 0));
     setSelectedUser(senderName);
     setOpenChatBox(true);
     setOpenChatList(false);
+    setReadUsers((prev) => [...new Set([...prev, senderName])]);
 
-    try {
-      const snapshot = await get(ref(db, "chat/conversations"));
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        const chatHistory = [];
-
-        Object.entries(data).forEach(([key, value]) => {
-          if (value.sender && value.timestamp) {
-            if (
-              value.sender === senderName ||
-              value.content?.startsWith(`(${senderName})`)
-            ) {
-              chatHistory.push({ id: key, ...value });
-            }
-          } else {
-            Object.entries(value).forEach(([subKey, subVal]) => {
-              if (
-                subVal.sender === senderName ||
-                subVal.content?.startsWith(`(${senderName})`)
-              ) {
-                chatHistory.push({ id: subKey, ...subVal });
-              }
-            });
-          }
-        });
-
-        chatHistory.sort((a, b) => a.timestamp - b.timestamp);
-        setChatWithUser(chatHistory);
-      }
-    } catch (err) {
-      console.error("Lỗi khi tải lịch sử chat:", err);
-    }
-
-    const chatRef = ref(db, "chat/conversations");
-    onChildAdded(chatRef, (snapshot) => {
-      const newMsg = snapshot.val();
-      if (
-        newMsg &&
-        (newMsg.sender === senderName ||
-          newMsg.content?.startsWith(`(${senderName})`))
-      ) {
-        setChatWithUser((prev) => [...prev, { ...newMsg, id: snapshot.key }]);
-      }
+    const chatRef = ref(db, `chat/conversations/${senderName}`);
+    onValue(chatRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const list = Object.values(data).sort(
+          (a, b) => a.timestamp - b.timestamp
+        );
+        setChatWithUser(list);
+      } else setChatWithUser([]);
     });
+    setNewMsgCount((prev) => Math.max(prev - 1, 0));
   };
-
+  // ============ 📨 GỬI TIN ADMIN ============
   const handleSendReply = async () => {
-    if (!replyText.trim()) return;
+    if (!replyText.trim() || !selectedUser) return;
     try {
+      const chatRef = ref(db, `chat/conversations/${selectedUser}`);
+      const newMsg = push(chatRef);
+      await set(newMsg, {
+        sender: "Admin",
+        content: replyText,
+        timestamp: Date.now(),
+      });
+      setReplyText("");
+
       await fetch(
         `${API_BASE_URL}/api/chat/send?sender=Admin&content=(${selectedUser}) ${replyText}`,
         { method: "POST" }
       );
-      setReplyText("");
     } catch (err) {
       console.error("Lỗi khi gửi phản hồi:", err);
     }
@@ -358,56 +339,39 @@ const Header = ({ drawerWidth }) => {
         </div>
       </Toolbar>
 
+      {/* 💬 DANH SÁCH KH */}
       <Dialog
         open={openChatList}
         onClose={() => setOpenChatList(false)}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle sx={{ fontWeight: 600, textAlign: "center" }}>
-          TIN NHẮN KHÁCH HÀNG
+        <DialogTitle sx={{ textAlign: "center", fontWeight: 600 }}>
+          Tin nhắn khách hàng
         </DialogTitle>
         <DialogContent>
           {loading ? (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                padding: "30px 0",
-              }}
-            >
+            <Box sx={{ textAlign: "center", py: 3 }}>
               <CircularProgress />
-            </div>
-          ) : messages.length === 0 ? (
-            <Typography align="center">Chưa có tin nhắn nào.</Typography>
+            </Box>
           ) : (
             <List>
               {messages.map((msg) => (
                 <ListItem
-                  key={msg.id}
+                  key={msg.sender}
                   button
                   onClick={() => handleSelectUser(msg.sender)}
                   sx={{
                     backgroundColor: readUsers.includes(msg.sender)
-                      ? "#f5f5f5" // đã xem
-                      : "#e3f2fd", // chưa xem
-                    borderRadius: "8px",
+                      ? "#f5f5f5"
+                      : "#e3f2fd",
                     mb: 1,
+                    borderRadius: 2,
                     "&:hover": { backgroundColor: "#bbdefb" },
                   }}
                 >
                   <ListItemText
-                    primary={
-                      <strong>
-                        {msg.sender}{" "}
-                        {!readUsers.includes(msg.sender) && (
-                          <span style={{ color: "red", fontSize: 12 }}>
-                            (Mới)
-                          </span>
-                        )}
-                      </strong>
-                    }
+                    primary={<b>{msg.sender}</b>}
                     secondary={msg.content}
                   />
                 </ListItem>
@@ -416,21 +380,30 @@ const Header = ({ drawerWidth }) => {
           )}
         </DialogContent>
       </Dialog>
-
+      {/* 🗨️ CỬA SỔ CHAT */}
       <Dialog
         open={openChatBox}
         onClose={() => setOpenChatBox(false)}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle sx={{ fontWeight: 600, textAlign: "center" }}>
-          CHAT VỚI {selectedUser}
+        <DialogTitle sx={{ textAlign: "center", fontWeight: 600 }}>
+          Chat với {selectedUser}
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ maxHeight: 400, overflowY: "auto", mb: 2 }}>
-            {chatWithUser.map((msg) => (
+          <Box
+            className="admin-chat-body"
+            sx={{
+              maxHeight: 400,
+              overflowY: "auto",
+              mb: 2,
+              pr: 1,
+              pt: 1,
+            }}
+          >
+            {chatWithUser.map((msg, i) => (
               <Box
-                key={msg.id}
+                key={i}
                 sx={{
                   textAlign: msg.sender === "Admin" ? "right" : "left",
                   mb: 1,
@@ -441,34 +414,29 @@ const Header = ({ drawerWidth }) => {
                   sx={{
                     display: "inline-block",
                     backgroundColor:
-                      msg.sender === "Admin" ? "#bbdefb" : "#e0e0e0",
-                    borderRadius: "12px",
+                      msg.sender === "Admin" ? "#bbdefb" : "#f1f1f1",
+                    borderRadius: 2,
                     px: 2,
                     py: 1,
-                    maxWidth: "80%",
+                    maxWidth: "75%",
                   }}
                 >
-                  <strong>{msg.sender}:</strong> {msg.content}
+                  <b>{msg.sender}:</b> {msg.content}
                 </Typography>
-                <div>
-                  <Typography variant="caption" color="textSecondary">
-                    {new Date(msg.timestamp).toLocaleString()}
-                  </Typography>
-                </div>
               </Box>
             ))}
           </Box>
-
           <Box sx={{ display: "flex", gap: 1 }}>
             <TextField
               fullWidth
+              size="small"
               placeholder="Nhập nội dung phản hồi..."
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
-              size="small"
+              onKeyDown={(e) => e.key === "Enter" && handleSendReply()}
             />
             <Button variant="contained" onClick={handleSendReply}>
-              GỬI
+              Gửi
             </Button>
           </Box>
         </DialogContent>

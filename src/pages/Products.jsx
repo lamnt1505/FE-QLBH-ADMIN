@@ -102,35 +102,43 @@ const Products = () => {
   };
   const handleConfirmUpdate = async () => {
     try {
-      const formData = new FormData();
-      formData.append("name", updateName);
-      formData.append("price", updatePrice);
-      formData.append("description", updateDescription);
-      formData.append("categoryID", updateCategoryId);
-      formData.append("tradeID", updateTrademarkId);
-      formData.append("date_product", updateDate);
-
+      let imageBase64 = null;
       if (updateImageFile) {
-        formData.append("image", updateImageFile);
+        imageBase64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(updateImageFile);
+        });
       }
 
-      await axios.put(
+      const payload = {
+        name: updateName,
+        price: parseFloat(updatePrice),
+        description: updateDescription,
+        categoryID: updateCategoryId,
+        tradeID: updateTrademarkId,
+        date_product: updateDate,
+        image: imageBase64,
+      };
+
+      const res = await axios.put(
         `${API_BASE_URL}/api/v1/product/update/${updateId}`,
-        formData,
+        payload,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: { "Content-Type": "application/json" },
         }
       );
 
-      toast.success("Cập nhật sản phẩm thành công!");
+      toast.success("✅ Cập nhật sản phẩm thành công!");
       handleCloseUpdate();
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      setTimeout(() => window.location.reload(), 1000);
     } catch (err) {
       console.error("Lỗi khi cập nhật:", err);
-      toast.error("Có lỗi xảy ra khi cập nhật sản phẩm!");
+      if (err.response)
+        toast.error(err.response.data?.error || "❌ Cập nhật thất bại!");
+      else toast.error("🚫 Không thể kết nối đến server!");
     }
   };
   const handleButtonClick = () => {
@@ -164,9 +172,7 @@ const Products = () => {
   };
   const handleOpenDetail = async (id) => {
     try {
-      const res = await axios.get(
-        `${API_BASE_URL}/api/v1/product/${id}/get`
-      );
+      const res = await axios.get(`${API_BASE_URL}/api/v1/product/${id}/get`);
       setSelectedProduct(res.data);
       setOpen(true);
     } catch (error) {
@@ -208,9 +214,7 @@ const Products = () => {
   };
   const handleConfirmDelete = async () => {
     try {
-      await axios.delete(
-        `${API_BASE_URL}/api/v1/product/delete/${deleteId}`
-      );
+      await axios.delete(`${API_BASE_URL}/api/v1/product/delete/${deleteId}`);
       toast.success("Xóa sản phẩm thành công!");
       handleCloseDelete();
 
@@ -224,13 +228,10 @@ const Products = () => {
   };
   const fetchProducts = async (page, size) => {
     try {
-      const res = await axios.get(
-        `${API_BASE_URL}/api/v1/product/paginated`,
-        {
-          params: { page, size, sort: ["productID", "asc"] },
-          withCredentials: true,
-        }
-      );
+      const res = await axios.get(`${API_BASE_URL}/api/v1/product/paginated`, {
+        params: { page, size, sort: ["productID", "asc"] },
+        withCredentials: true,
+      });
       console.log(res.data);
       setProducts(res.data.content);
       setTotalPages(res.data.totalPages);
@@ -277,7 +278,7 @@ const Products = () => {
     fetchCategories();
     fetchTrademarks();
   }, []);
-  
+
   return (
     <Box sx={{ p: 2, m: 0, width: "100%" }}>
       <Typography variant="h5" gutterBottom sx={{ px: 2, pt: 2, pb: 1 }}>
@@ -356,7 +357,9 @@ const Products = () => {
                   <Avatar
                     variant="square"
                     src={
-                      product.imageBase64
+                      product.image
+                        ? product.image // ⚡ lấy link Cloudinary trực tiếp
+                        : product.imageBase64
                         ? `data:image/jpeg;base64,${product.imageBase64}`
                         : ""
                     }
@@ -364,7 +367,7 @@ const Products = () => {
                     sx={{ width: 80, height: 80 }}
                     onClick={() =>
                       handleOpenImage(
-                        `data:image/jpeg;base64,${product.imageBase64}`
+                        product.image
                       )
                     }
                   />
@@ -411,7 +414,7 @@ const Products = () => {
       <Box display="flex" justifyContent="center" my={2}>
         <Pagination
           count={totalPages}
-          page={page + 1} 
+          page={page + 1}
           onChange={(e, value) => setPage(value - 1)}
           color="primary"
         />
@@ -438,7 +441,9 @@ const Products = () => {
               </Typography>
               <img
                 src={
-                  selectedProduct.imageBase64
+                  selectedProduct.image
+                    ? selectedProduct.image
+                    : selectedProduct.imageBase64
                     ? `data:image/jpeg;base64,${selectedProduct.imageBase64}`
                     : ""
                 }

@@ -23,6 +23,7 @@ import MailIcon from "@mui/icons-material/Mail";
 import useAuthCookie from "../hooks/useAuthCookie";
 import { db } from "../firebase/firebaseConfig";
 import { ref, onChildAdded, off, get } from "firebase/database";
+import API_BASE_URL from "../config/config.js";
 import {
   getAccountById,
   updateAccount,
@@ -43,7 +44,6 @@ const Header = ({ drawerWidth }) => {
   const [newMsgCount, setNewMsgCount] = useState(0);
   const [readUsers, setReadUsers] = useState([]);
 
-  // --- Dành cho đổi mật khẩu ---
   const [openChangePassword, setOpenChangePassword] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -52,8 +52,6 @@ const Header = ({ drawerWidth }) => {
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const accountId = localStorage.getItem("accountId");
-  // --- Mở menu tài khoản ---
-  // --- Dành cho chỉnh sửa thông tin ---
 
   const [openEditProfile, setOpenEditProfile] = useState(false);
   const [accountInfo, setAccountInfo] = useState({
@@ -63,8 +61,8 @@ const Header = ({ drawerWidth }) => {
     email: "",
     local: "",
     dateOfBirth: "",
+    image: "",
   });
-  const [selectedImage, setSelectedImage] = useState(null);
   const [previewImage, setPreviewImage] = useState("");
   const [loadingUpdate, setLoadingUpdate] = useState(false);
 
@@ -84,7 +82,7 @@ const Header = ({ drawerWidth }) => {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:8080/api/v1/account/logout", {
+      await fetch(`${API_BASE_URL}/api/v1/account/logout`, {
         method: "POST",
         credentials: "include",
       });
@@ -92,7 +90,6 @@ const Header = ({ drawerWidth }) => {
       localStorage.removeItem("accountId");
       localStorage.removeItem("accountName");
       localStorage.removeItem("auth");
-
       window.location.href = "/login";
     } catch (err) {
       console.error("Lỗi logout:", err);
@@ -119,16 +116,30 @@ const Header = ({ drawerWidth }) => {
     setMessage(result.message);
 
     if (result.success) {
-      // Reset form
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
 
-      // Tự đóng sau 2s
       setTimeout(() => setOpenChangePassword(false), 2000);
     }
 
     setLoadingChange(false);
+  };
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        setAccountInfo((prev) => ({
+          ...prev,
+          image: base64String, 
+        }));
+        setPreviewImage(reader.result); 
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleOpenEditProfile = async () => {
@@ -144,10 +155,9 @@ const Header = ({ drawerWidth }) => {
         phoneNumber: data.phoneNumber || "",
         local: data.local || "",
         dateOfBirth: data.dateOfBirth || "",
+        image: data.image || "",
       });
-      setPreviewImage(
-        data.imageBase64 ? `data:image/png;base64,${data.imageBase64}` : ""
-      );
+      setPreviewImage(data.image || "");
     } catch (err) {
       console.error("Lỗi khi lấy thông tin tài khoản:", err);
     }
@@ -156,14 +166,15 @@ const Header = ({ drawerWidth }) => {
   const handleUpdateProfile = async () => {
     setLoadingUpdate(true);
     const id = localStorage.getItem("accountId");
+
     try {
-      await updateAccount(id, accountInfo, selectedImage);
-      setMessage("CẬP NHẬT TÀI KHOẢN THÀNH CÔNG");
+      await updateAccount(id, accountInfo); 
+      setMessage("CẬP NHẬT TÀI KHOẢN THÀNH CÔNG ✅");
       setIsSuccess(true);
-      setTimeout(() => setOpenEditProfile(false), 2000);
+      setTimeout(() => setOpenEditProfile(false), 1500);
     } catch (err) {
       console.error("Lỗi khi cập nhật tài khoản:", err);
-      setMessage("Cập nhật thất bại");
+      setMessage("CẬP NHẬT THẤT BẠI ❌");
       setIsSuccess(false);
     } finally {
       setLoadingUpdate(false);
@@ -286,7 +297,7 @@ const Header = ({ drawerWidth }) => {
     if (!replyText.trim()) return;
     try {
       await fetch(
-        `http://localhost:8080/api/chat/send?sender=Admin&content=(${selectedUser}) ${replyText}`,
+        `${API_BASE_URL}/api/chat/send?sender=Admin&content=(${selectedUser}) ${replyText}`,
         { method: "POST" }
       );
       setReplyText("");
@@ -347,7 +358,6 @@ const Header = ({ drawerWidth }) => {
         </div>
       </Toolbar>
 
-      {/* 💬 DANH SÁCH KHÁCH HÀNG */}
       <Dialog
         open={openChatList}
         onClose={() => setOpenChatList(false)}
@@ -407,7 +417,6 @@ const Header = ({ drawerWidth }) => {
         </DialogContent>
       </Dialog>
 
-      {/* 💬 HỘP CHAT RIÊNG */}
       <Dialog
         open={openChatBox}
         onClose={() => setOpenChatBox(false)}
@@ -465,7 +474,6 @@ const Header = ({ drawerWidth }) => {
         </DialogContent>
       </Dialog>
 
-      {/* 🔐 DIALOG ĐỔI MẬT KHẨU */}
       <Dialog
         open={openChangePassword}
         onClose={() => setOpenChangePassword(false)}
@@ -551,7 +559,6 @@ const Header = ({ drawerWidth }) => {
         </DialogContent>
       </Dialog>
 
-    {/*DIALOG THAY ĐỔI THÔNG TIN */}
       <Dialog
         open={openEditProfile}
         onClose={() => setOpenEditProfile(false)}
@@ -570,7 +577,7 @@ const Header = ({ drawerWidth }) => {
         </DialogTitle>
         <DialogContent>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-              <TextField
+            <TextField
               label="TÊN ĐĂNG NHẬP"
               value={accountInfo.accountName}
               onChange={(e) =>
@@ -642,13 +649,7 @@ const Header = ({ drawerWidth }) => {
                   hidden
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      setSelectedImage(file);
-                      setPreviewImage(URL.createObjectURL(file));
-                    }
-                  }}
+                  onChange={handleImageSelect}
                 />
               </Button>
             </Box>

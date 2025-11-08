@@ -17,9 +17,9 @@ export default function AddProduct() {
     price: "",
     categoryID: "",
     tradeID: "",
+    image: "", // ⚡ thêm trường image base64
   });
-
-  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState("");
   const [categories, setCategories] = useState([]);
   const [trademarks, setTrademarks] = useState([]);
 
@@ -28,12 +28,10 @@ export default function AddProduct() {
       .get(`${API_BASE_URL}/api/v1/category/Listgetall`)
       .then((res) => setCategories(res.data))
       .catch((err) => console.error("Lỗi load categories:", err));
+
     axios
       .get(`${API_BASE_URL}/api/trademark/gettrademark`)
-      .then((res) => {
-        console.log("Trademarks API:", res.data);
-        setTrademarks(res.data);
-      })
+      .then((res) => setTrademarks(res.data))
       .catch((err) => console.error("Lỗi load trademarks:", err));
   }, []);
 
@@ -44,8 +42,17 @@ export default function AddProduct() {
     });
   };
 
+  // ⚡ Khi chọn ảnh → convert sang base64
   const handleFileChange = (e) => {
-    setImage(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, image: reader.result }));
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const validateForm = () => {
@@ -61,12 +68,13 @@ export default function AddProduct() {
     if (!formData.categoryID)
       newErrors.categoryID = "Vui lòng chọn loại sản phẩm";
     if (!formData.tradeID) newErrors.tradeID = "Vui lòng chọn thương hiệu";
-    if (!image) newErrors.image = "Vui lòng chọn ảnh sản phẩm";
+    if (!formData.image) newErrors.image = "Vui lòng chọn ảnh sản phẩm";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // ⚡ Gửi JSON
   const handleSubmit = async () => {
     if (!validateForm()) {
       toast.warning("Vui lòng kiểm tra lại các trường bắt buộc!", {
@@ -75,28 +83,15 @@ export default function AddProduct() {
       return;
     }
 
-    const data = new FormData();
-    Object.keys(formData).forEach((key) => {
-      data.append(key, formData[key]);
-    });
-    data.append("image", image);
-
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}/api/v1/product/add`,
-        data,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const res = await axios.post(`${API_BASE_URL}/api/v1/product/add`, formData, {
+        headers: { "Content-Type": "application/json" },
+      });
 
-      toast.success(
-        "🎉 Thêm sản phẩm thành công! Sẽ chuyển hướng sau 10 giây...",
-        {
-          position: "top-center",
-          autoClose: 3000,
-        }
-      );
+      toast.success("🎉 Thêm sản phẩm thành công!", {
+        position: "top-center",
+        autoClose: 3000,
+      });
 
       console.log("Kết quả:", res.data);
       setTimeout(() => navigate("/products"), 2000);
@@ -104,18 +99,12 @@ export default function AddProduct() {
       console.error("Lỗi khi thêm sản phẩm:", error);
       if (error.response) {
         const { status, data } = error.response;
-
-        if (status === 409) {
-          toast.error(data.error || "⚠️ Tên sản phẩm đã tồn tại!");
-        } else if (status === 400) {
-          toast.error(
-            data.error || "⚠️ Không tìm thấy danh mục hoặc thương hiệu!"
-          );
-        } else if (status === 500) {
+        if (status === 409) toast.error(data.error || "⚠️ Tên sản phẩm đã tồn tại!");
+        else if (status === 400)
+          toast.error(data.error || "⚠️ Không tìm thấy danh mục hoặc thương hiệu!");
+        else if (status === 500)
           toast.error(data.error || "❌ Lỗi máy chủ, vui lòng thử lại!");
-        } else {
-          toast.error("❌ Thêm sản phẩm thất bại!");
-        }
+        else toast.error("❌ Thêm sản phẩm thất bại!");
       } else {
         toast.error("🚫 Không thể kết nối đến máy chủ!");
       }
@@ -155,7 +144,6 @@ export default function AddProduct() {
             🧾 THÊM SẢN PHẨM MỚI
           </Typography>
 
-          {/* Giao diện chia 2 cột */}
           <Box
             sx={{
               display: "grid",
@@ -164,7 +152,6 @@ export default function AddProduct() {
               mt: 2,
             }}
           >
-            {/* Cột trái */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <TextField
                 label="Tên sản phẩm"
@@ -234,13 +221,12 @@ export default function AddProduct() {
               />
             </Box>
 
-            {/* Cột phải */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <Button variant="outlined" component="label" fullWidth>
                 📷 Chọn ảnh
-                <input type="file" hidden onChange={handleFileChange} />
+                <input type="file" hidden accept="image/*" onChange={handleFileChange} />
               </Button>
-              {image && (
+              {preview && (
                 <Box
                   sx={{
                     display: "flex",
@@ -250,7 +236,7 @@ export default function AddProduct() {
                   }}
                 >
                   <img
-                    src={URL.createObjectURL(image)}
+                    src={preview}
                     alt="Preview"
                     style={{
                       width: 150,
@@ -282,15 +268,7 @@ export default function AddProduct() {
             </Box>
           </Box>
 
-          {/* Nút hành động */}
-          <Box
-            sx={{
-              display: "flex",
-              gap: 2,
-              mt: 4,
-              justifyContent: "center",
-            }}
-          >
+          <Box sx={{ display: "flex", gap: 2, mt: 4, justifyContent: "center" }}>
             <Button
               variant="contained"
               color="primary"

@@ -22,7 +22,6 @@ const Sidebar = ({ drawerWidth }) => {
         const parsed = JSON.parse(accountData);
         setRole(parsed.typeAccount || parsed.role || "ADMIN");
       } catch (err) {
-        console.error("Lỗi khi đọc role:", err);
         setRole("ADMIN");
       }
     } else {

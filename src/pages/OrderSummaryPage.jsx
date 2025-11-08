@@ -105,7 +105,7 @@ const OrderSummaryPage = () => {
       } catch (err) {
         console.error("🚨 Lỗi khi fetch danh sách đơn hàng:", err);
       }
-    }, 1 * 60 * 100);
+    }, 10 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 

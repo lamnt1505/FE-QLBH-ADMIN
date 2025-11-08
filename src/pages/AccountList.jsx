@@ -122,10 +122,10 @@ const AccountList = () => {
                 <TableRow key={acc.accountID}>
                   <TableCell>{acc.accountID}</TableCell>
                   <TableCell>
-                    {acc.imageBase64 ? (
+                    {acc.image ? (
                       <Avatar
                         alt={acc.accountName}
-                        src={`data:image/png;base64,${acc.imageBase64}`}
+                        src={acc.image}
                       />
                     ) : (
                       <Avatar>{acc.accountName?.[0]}</Avatar>

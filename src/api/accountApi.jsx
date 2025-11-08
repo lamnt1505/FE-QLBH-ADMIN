@@ -1,6 +1,8 @@
 
 import axios from "axios";
-const API_URL = "http://localhost:8080/api/v1/account";
+import API_BASE_URL from "../config/config.js";
+const API_URL = `${API_BASE_URL}/api/v1/account`;
+
 export const changePassword = async (accountId, oldPassword, newPassword, confirmPassword) => {
   const apiUrl = `${API_URL}/changer-password/${accountId}?oldPassword=${encodeURIComponent(
     oldPassword
@@ -31,17 +33,9 @@ export const getAccountById = async (accountId) => {
   const res = await axios.get(`${API_URL}/${accountId}/get`);
   return res.data;
 };
-export const updateAccount = async (accountId, accountDTO, imageFile) => {
-  const formData = new FormData();
-  for (const key in accountDTO) {
-    if (accountDTO[key] !== undefined && accountDTO[key] !== null)
-      formData.append(key, accountDTO[key]);
-  }
-  if (imageFile) {
-    formData.append("image", imageFile);
-  }
-  const res = await axios.put(`${API_URL}/update/${accountId}`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
+export const updateAccount = async (accountId, accountDTO) => {
+  const res = await axios.put(`${API_URL}/update/${accountId}`, accountDTO, {
+    headers: { "Content-Type": "application/json" },
   });
   return res.data;
 };

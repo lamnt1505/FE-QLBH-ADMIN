@@ -40,7 +40,7 @@ export default function LoginPage() {
       const res = await api.post(
         "/account/login",
         { accountName, accountPass, captcha },
-        { withCredentials: true }   // 👈 thêm dòng này
+        { withCredentials: true } 
       );
 
       const data = res.data;

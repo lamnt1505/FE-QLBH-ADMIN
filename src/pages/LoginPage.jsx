@@ -22,6 +22,7 @@ const refreshCaptcha = async () => {
     const res = await fetch(`${API_BASE_URL}/api/v1/account/captcha`, {
       method: "GET",
       credentials: "include",
+      mode: "cors"
     });
     const blob = await res.blob();
     const imgUrl = URL.createObjectURL(blob);
@@ -46,7 +47,8 @@ const refreshCaptcha = async () => {
       );
 
       const data = res.data;
-
+      console.log("Login response:", data);
+      
       if (data.isCaptchaValid === false) {
         setError("Captcha không hợp lệ. Vui lòng thử lại.");
         refreshCaptcha();
@@ -54,7 +56,7 @@ const refreshCaptcha = async () => {
         return;
       }
 
-      if (data.success) {
+      if (data.status || data.success === true) {
         localStorage.setItem("accountName", accountName);
         let role = "USER";
         if (data.isAdmin) role = "ADMIN";

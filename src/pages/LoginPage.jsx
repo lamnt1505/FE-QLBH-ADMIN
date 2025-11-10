@@ -56,7 +56,7 @@ const refreshCaptcha = async () => {
         return;
       }
 
-      if (data.status || data.success === true) {
+      if (data.status || data.success) {
         localStorage.setItem("accountName", accountName);
         let role = "USER";
         if (data.isAdmin) role = "ADMIN";

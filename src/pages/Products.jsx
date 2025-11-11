@@ -132,8 +132,7 @@ const Products = () => {
 
       toast.success("✅ Cập nhật sản phẩm thành công!");
       handleCloseUpdate();
-
-      setTimeout(() => window.location.reload(), 1000);
+      fetchProducts(page, size);
     } catch (err) {
       console.error("Lỗi khi cập nhật:", err);
       if (err.response)
@@ -162,9 +161,7 @@ const Products = () => {
         }
       );
       toast.success(res.data.message || "Tải file thành công!");
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      fetchProducts(page, size);
     } catch (err) {
       console.error("Lỗi upload:", err);
       toast.error("Có lỗi khi tải file!");
@@ -217,10 +214,7 @@ const Products = () => {
       await axios.delete(`${API_BASE_URL}/api/v1/product/delete/${deleteId}`);
       toast.success("Xóa sản phẩm thành công!");
       handleCloseDelete();
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      fetchProducts(page, size);
     } catch (err) {
       console.error("Lỗi khi xóa sản phẩm:", err);
       toast.error("Có lỗi xảy ra khi xóa sản phẩm!");

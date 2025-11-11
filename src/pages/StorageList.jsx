@@ -21,8 +21,10 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import API_BASE_URL from "../config/config.js";
+import { useNavigate } from "react-router-dom";
 
 const StorageList = () => {
+  const navigate = useNavigate();
   const [storages, setStorages] = useState([]);
   const [products, setProducts] = useState([]);
   const [open, setOpen] = useState(false);
@@ -153,7 +155,7 @@ const StorageList = () => {
         variant="contained"
         color="primary"
         sx={{ mb: 2 }}
-        onClick={() => (window.location.href = "/add-storage")}
+       onClick={() => navigate("/add-storage")}
       >
         + THÊM NHẬP KHO
       </Button>
